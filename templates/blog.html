@@ -2,12 +2,14 @@
 {% from '_macros.html' import entry %}
 {% block title %}lore{% endblock %}
 {% block content %}
+  <div class="heading-box">
   <h2 class="section-title">lore & bitácora</h2>
   <p class="section-sub">
     {% if tag %}etiqueta: «{{ tag }}» · <a href="{{ url_for('blog') }}">ver todo</a>
     {% elif month %}archivo: {{ month }} · <a href="{{ url_for('blog') }}">ver todo</a>
     {% else %}todo lo que se sabe (y lo que se rumorea) del pueblo{% endif %}
   </p>
+  </div>
   {% for p in posts %}
     {{ entry(p) }}
   {% else %}

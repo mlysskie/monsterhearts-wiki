@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="only light">
 <title>{% block title %}{{ settings.site_title }}{% endblock %} // crónicas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Special+Elite&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+<div class="page">
 
   <div class="topbar">
-    <span>{{ settings.town_name }} — {{ settings.season }} <span class="rec blink">●REC</span></span>
+    <span>{{ settings.town_name }} — {{ settings.season }} <span class="rec blink">●rec</span></span>
     <span>
       señal: <span class="signal">▂▄<b>▆█</b></span> ·
       {% if is_master() %}<a href="{{ url_for('master_home') }}">[panel del master]</a> · {% endif %}
@@ -21,54 +23,59 @@
   </div>
 
   <header class="site">
-    <h1><a href="{{ url_for('index') }}">{{ settings.site_title }}</a></h1>
+    {% with cls='forest', color='#2a2f29' %}{% include '_forest.html' %}{% endwith %}
+    <div class="fog"></div>
+    <h1><a href="{{ url_for('index') }}">{{ settings.site_title }}</a><span class="cross">✝</span></h1>
     <p class="tagline">{{ settings.tagline }}</p>
-    <div class="counter">VISITANTES: {{ '%06d' % (settings.visits|int) }}</div>
-    {% with cls='forest', color='#23301F' %}{% include '_forest.html' %}{% endwith %}
+    <div class="counter">mejor visto en 800x600</div>
   </header>
 
-  {% block hero %}{% endblock %}
+  <div class="cols">
 
-  <div class="layout">
-    <nav class="sidebar">
-      <h3>elenco</h3>
-      <ul>
-        {% for c in side_pcs %}
-        <li>{% if c.name|lower in online|map('lower')|list %}<span class="badge-online"></span>{% endif %}<a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a>{% if c.skin %} <small>· {{ c.skin|lower }}</small>{% endif %}</li>
-        {% else %}
-        <li><i>todavía nadie llegó al pueblo...</i></li>
-        {% endfor %}
-      </ul>
-      {% if side_npcs %}
-      <h3>gente del pueblo</h3>
-      <ul>
-        {% for c in side_npcs %}
-        <li><a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a></li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-      <h3>secciones</h3>
-      <ul>
-        <li><a href="{{ url_for('index') }}">» inicio</a></li>
-        <li><a href="{{ url_for('blog') }}">» lore / bitácora</a></li>
-        <li><a href="{{ url_for('characters') }}">» wiki del elenco</a></li>
-        <li><a href="{{ url_for('help_page') }}">» cómo funciona esto</a></li>
-        {% if is_master() %}<li><a href="{{ url_for('master_home') }}" style="color:var(--string)">» panel del master</a></li>{% endif %}
-      </ul>
-
-      <div class="widget">
-        <h4>en línea ahora</h4>
-        {% for n in online %}<span class="badge-online"></span>{{ n }}<br>{% else %}nadie... qué raro{% endfor %}
-      </div>
-      <div class="widget">
-        <h4>ahora sonando</h4>
-        ♪ {{ settings.now_playing }}
-      </div>
-      <div class="widget">
-        <h4>humor del pueblo</h4>
-        <div class="pre">{{ settings.town_mood }}</div>
+    <aside class="col-left">
+      <div class="widget inset center">
+        <h4>visitas</h4>
+        <div class="odometer">{% for d in '%06d' % (settings.visits|int) %}<span>{{ d }}</span>{% endfor %}</div>
+        <div class="tiny">desde {{ settings.season }}</div>
       </div>
 
+      <div class="widget">
+        <nav class="menu">
+          <div class="menu-head">menú</div>
+          <a href="{{ url_for('index') }}">inicio</a>
+          <a href="{{ url_for('blog') }}">lore / bitácora</a>
+          <a href="{{ url_for('characters') }}">wiki del elenco</a>
+          <a href="{{ url_for('help_page') }}">cómo funciona esto</a>
+          {% if is_master() %}<a class="hot" href="{{ url_for('master_home') }}">panel del master</a>{% endif %}
+
+          <div class="menu-head">elenco</div>
+          {% for c in side_pcs %}
+          <a href="{{ url_for('character', slug=c.slug) }}" title="{{ c.skin }}">{% if c.name|lower in online|map('lower')|list %}<span class="online-dot">●</span> {% endif %}{{ c.name }}</a>
+          {% else %}
+          <div class="menu-empty">todavía nadie llegó al pueblo...</div>
+          {% endfor %}
+
+          {% if side_npcs %}
+          <div class="menu-head">gente</div>
+          {% for c in side_npcs %}
+          <a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a>
+          {% endfor %}
+          {% endif %}
+        </nav>
+      </div>
+
+      <div class="center">
+        <div class="construction"><span>en construcción</span></div>
+      </div>
+    </aside>
+
+    <main>
+      {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+      {% block hero %}{% endblock %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <aside class="col-right">
       <div class="widget shoutbox" id="tagboard">
         <h4>tagboard</h4>
         <div class="shouts">
@@ -79,7 +86,7 @@
             <form class="inline" method="post" action="{{ url_for('master_shout_delete', shout_id=s.id) }}">
               <input type="hidden" name="csrf" value="{{ csrf_token() }}">
               <input type="hidden" name="next" value="{{ request.path }}#tagboard">
-              <button type="submit" title="borrar" style="font-size:9px;padding:0 3px">x</button>
+              <button type="submit" title="borrar" style="font-size:8px;padding:0 3px">x</button>
             </form>
             {% endif %}
           </div>
@@ -93,6 +100,21 @@
           <input type="text" name="body" maxlength="240" placeholder="dejá un mensajito..." required>
           <button type="submit">tag!</button>
         </form>
+      </div>
+
+      <div class="widget">
+        <h4>en línea</h4>
+        {% for n in online %}<span class="badge-online"></span>{{ n }}<br>{% else %}nadie... qué raro{% endfor %}
+      </div>
+
+      <div class="widget inset">
+        <h4>sonando</h4>
+        ♪ {{ settings.now_playing }}
+      </div>
+
+      <div class="widget">
+        <h4>humor</h4>
+        <div class="pre">{{ settings.town_mood }}</div>
       </div>
 
       {% if archive %}
@@ -111,30 +133,24 @@
         {% endfor %}
       </div>
       {% endif %}
-      <div style="text-align:center">
-        <div class="construction"><span>EN CONSTRUCCIÓN</span></div>
-      </div>
-    </nav>
-
-    <main>
-      {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
-      {% block content %}{% endblock %}
-    </main>
+    </aside>
   </div>
 
   <footer class="site">
-    hecho a mano en Notepad, {{ settings.season }} · optimizado para módem de 56k (es broma. o no.) · mejor visto en 800x600
+    hecho a mano en notepad, {{ settings.season }} · optimizado para módem de 56k (es broma. o no.)
     <div class="webring">
       <a href="{{ url_for('blog') }}">&lt;prev</a><a href="{{ url_for('index') }}">webring del pueblo</a><a href="{{ url_for('characters') }}">next&gt;</a>
     </div>
     <div class="badges">
-      <span class="badge88 b1">MONSTER<br>HEARTS 2</span>
+      <span class="badge88 b1">monster<br>hearts 2</span>
       <span class="badge88 b2">hecho con<br>♥ y miedo</span>
-      <span class="badge88 b3">NO HAY<br>SEÑAL</span>
-      <span class="badge88 b4">HTML 4.01</span>
+      <span class="badge88 b3">no hay<br>señal</span>
+      <span class="badge88 b4">html 4.01</span>
+      <span class="badge88 b5">✝ goth ✝</span>
     </div>
   </footer>
 
+</div>
 <script src="{{ url_for('static', filename='site.js') }}"></script>
 </body>
 </html>

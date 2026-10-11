@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}{{ p.title if p else 'nueva entrada' }}{% endblock %}
 {% block content %}
+  <div class="heading-box">
   <h2 class="section-title">{{ 'editar entrada' if p else 'nueva entrada' }}</h2>
   <p class="section-sub"><a href="{{ url_for('master_home') }}">« volver al panel</a>{% if p %} · <a href="{{ url_for('post', post_id=p.id) }}">ver entrada</a>{% endif %}</p>
+  </div>
 
   <form method="post" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="{{ csrf_token() }}">

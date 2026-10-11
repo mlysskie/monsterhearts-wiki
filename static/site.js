@@ -25,7 +25,7 @@
       var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', 'M' + x1 + ' ' + y1 + ' Q' + mx + ' ' + my + ' ' + x2 + ' ' + y2);
       path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', '#B8362F');
+      path.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--string').trim() || '#7a1022');
       path.setAttribute('stroke-width', String(1 + Math.min(l.amount, 4) * 0.6));
       path.setAttribute('stroke-linecap', 'round');
       path.setAttribute('opacity', '0.85');

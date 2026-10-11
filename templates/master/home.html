@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}panel del master{% endblock %}
 {% block content %}
+  <div class="heading-box">
   <h2 class="section-title">panel del master</h2>
   <p class="section-sub">desde acá manejás todo el pueblo</p>
+  </div>
 
   <div class="statbox">
     {% for k, v in stats.items() %}<div><b>{{ '%04d' % v }}</b>{{ k }}</div>{% endfor %}

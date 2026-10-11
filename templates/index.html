@@ -16,8 +16,10 @@
 </section>
 {% endblock %}
 {% block content %}
+  <div class="heading-box">
   <h2 class="section-title">últimas entradas</h2>
   <p class="section-sub">registrado tras la sesión, sin editar</p>
+  </div>
   {% for p in posts %}
     {{ entry(p) }}
   {% else %}

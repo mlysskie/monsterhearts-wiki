@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="only light">
 <title>{{ settings.site_title }} // entrar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Special+Elite&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="gate">
@@ -36,7 +37,7 @@
     </div>
     <div class="dialup"></div>
 
-    {% with cls='gate-forest', color='#0f1a0d' %}{% include '_forest.html' %}{% endwith %}
+    {% with cls='gate-forest', color='#3a3f39' %}{% include '_forest.html' %}{% endwith %}
     <p class="small">
       {{ settings.town_name }} · {{ settings.season }}<br>
       ¿sos el master? <a href="{{ url_for('master_login') }}">entrá por acá</a>

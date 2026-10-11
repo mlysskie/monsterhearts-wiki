@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}{{ c.name if c else 'nuevo personaje' }}{% endblock %}
 {% block content %}
+  <div class="heading-box">
   <h2 class="section-title">{{ 'editar: ' ~ c.name if c else 'nuevo personaje' }}</h2>
   <p class="section-sub"><a href="{{ url_for('master_home') }}">« volver al panel</a>{% if c %} · <a href="{{ url_for('character', slug=c.slug) }}">ver página</a>{% endif %}</p>
+  </div>
 
   <form method="post" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="{{ csrf_token() }}">

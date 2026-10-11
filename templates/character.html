@@ -12,7 +12,7 @@
     <div class="ib-title">{{ c.name }}</div>
     <div class="ib-img">
       {% if c.image_id %}<img src="{{ image_url(c.image_id) }}" alt="{{ c.name }}">{% else %}<div class="noimg">[ sin foto ]</div>{% endif %}
-      {% if c.tagline %}<div style="margin-top:6px;font-family:'Special Elite',monospace">«{{ c.tagline }}»</div>{% endif %}
+      {% if c.tagline %}<div style="margin-top:6px;font-family:var(--pixel);font-size:8px">«{{ c.tagline }}»</div>{% endif %}
     </div>
     <table>
       {% if c.skin %}<tr><th>skin</th><td>{{ c.skin }}</td></tr>{% endif %}
