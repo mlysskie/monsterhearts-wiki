@@ -2,7 +2,6 @@
 {% from '_macros.html' import polaroid, entry %}
 {% block title %}inicio{% endblock %}
 {% block hero %}
-<div class="marquee"><span>★ {{ settings.welcome }} ★ última actualización: {{ (posts[0].created_at if posts else none)|fecha }} ★ firmá el tagboard ★</span></div>
 <section class="corkboard">
   <h2>strings del elenco</h2>
   {% if board %}

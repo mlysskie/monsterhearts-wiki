@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="only light">
 <title>{% block title %}{{ settings.site_title }}{% endblock %} // crónicas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Reenie+Beanie&family=Silkscreen&family=Special+Elite&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -23,51 +23,17 @@
   </div>
 
   <header class="site">
-    {% with cls='forest', color='#2a2f29' %}{% include '_forest.html' %}{% endwith %}
+    {% include '_trees.html' %}
+    {% with cls='forest', color='#3f3d2b' %}{% include '_forest.html' %}{% endwith %}
     <div class="fog"></div>
-    <h1><a href="{{ url_for('index') }}">{{ settings.site_title }}</a><span class="cross">✝</span></h1>
+    <h1><a href="{{ url_for('index') }}"><span class="orn">✧</span>{{ settings.site_title }}<span class="orn">❦</span></a></h1>
     <p class="tagline">{{ settings.tagline }}</p>
     <div class="counter">mejor visto en 800x600</div>
   </header>
 
+  <div class="marquee"><span>✿ {{ settings.welcome }} ✿</span></div>
+
   <div class="cols">
-
-    <aside class="col-left">
-      <div class="widget inset center">
-        <h4>visitas</h4>
-        <div class="odometer">{% for d in '%06d' % (settings.visits|int) %}<span>{{ d }}</span>{% endfor %}</div>
-        <div class="tiny">desde {{ settings.season }}</div>
-      </div>
-
-      <div class="widget">
-        <nav class="menu">
-          <div class="menu-head">menú</div>
-          <a href="{{ url_for('index') }}">inicio</a>
-          <a href="{{ url_for('blog') }}">lore / bitácora</a>
-          <a href="{{ url_for('characters') }}">wiki del elenco</a>
-          <a href="{{ url_for('help_page') }}">cómo funciona esto</a>
-          {% if is_master() %}<a class="hot" href="{{ url_for('master_home') }}">panel del master</a>{% endif %}
-
-          <div class="menu-head">elenco</div>
-          {% for c in side_pcs %}
-          <a href="{{ url_for('character', slug=c.slug) }}" title="{{ c.skin }}">{% if c.name|lower in online|map('lower')|list %}<span class="online-dot">●</span> {% endif %}{{ c.name }}</a>
-          {% else %}
-          <div class="menu-empty">todavía nadie llegó al pueblo...</div>
-          {% endfor %}
-
-          {% if side_npcs %}
-          <div class="menu-head">gente</div>
-          {% for c in side_npcs %}
-          <a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a>
-          {% endfor %}
-          {% endif %}
-        </nav>
-      </div>
-
-      <div class="center">
-        <div class="construction"><span>en construcción</span></div>
-      </div>
-    </aside>
 
     <main>
       {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
@@ -76,30 +42,72 @@
     </main>
 
     <aside class="col-right">
-      <div class="widget shoutbox" id="tagboard">
-        <h4>tagboard</h4>
-        <div class="shouts">
-          {% for s in shouts %}
-          <div class="shout{% if s.is_master %} m{% endif %}">
-            <b>{{ s.author }}:</b> {{ s.body }} <time>{{ s.created_at|fecha }}</time>
-            {% if is_master() %}
-            <form class="inline" method="post" action="{{ url_for('master_shout_delete', shout_id=s.id) }}">
-              <input type="hidden" name="csrf" value="{{ csrf_token() }}">
-              <input type="hidden" name="next" value="{{ request.path }}#tagboard">
-              <button type="submit" title="borrar" style="font-size:8px;padding:0 3px">x</button>
-            </form>
-            {% endif %}
-          </div>
+      <div class="widget">
+        <h4>directorio</h4>
+        <nav class="menu">
+          <a href="{{ url_for('index') }}">inicio</a>
+          <a href="{{ url_for('blog') }}">lore</a>
+          <a href="{{ url_for('characters') }}">wiki</a>
+          <a href="{{ url_for('help_page') }}">ayuda</a>
+          {% if is_master() %}<a class="hot" href="{{ url_for('master_home') }}">master</a>{% endif %}
+
+          <div class="menu-head">el elenco</div>
+          {% for c in side_pcs %}
+          <a href="{{ url_for('character', slug=c.slug) }}" title="{{ c.skin }}">{% if c.name|lower in online|map('lower')|list %}<span class="online-dot">●</span> {% endif %}{{ c.name }}</a>
           {% else %}
-          <div class="shout"><i>nadie dejó nada. sé lx primerx!</i></div>
+          <div class="menu-empty">todavía nadie llegó al pueblo...</div>
           {% endfor %}
+
+          {% if side_npcs %}
+          <div class="menu-head">gente del pueblo</div>
+          {% for c in side_npcs %}
+          <a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a>
+          {% endfor %}
+          {% endif %}
+        </nav>
+        <div class="vines">~❀~<b>●</b>~❀~<b>●</b>~❀~<b>●</b>~❀~</div>
+      </div>
+
+      <div class="widget shoutbox" id="tagboard">
+        <div class="notebook">
+          <h4>tagboard</h4>
+          <div class="shouts">
+            {% for s in shouts %}
+            <div class="shout{% if s.is_master %} m{% endif %}">
+              <b>{{ s.author }}:</b> {{ s.body }} <time>{{ s.created_at|fecha }}</time>
+              {% if is_master() %}
+              <form class="inline" method="post" action="{{ url_for('master_shout_delete', shout_id=s.id) }}">
+                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ request.path }}#tagboard">
+                <button type="submit" title="borrar">x</button>
+              </form>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="shout"><i>nadie dejó nada. sé lx primerx!</i></div>
+            {% endfor %}
+          </div>
+          <form method="post" action="{{ url_for('shout') }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.path }}#tagboard">
+            <input type="text" name="body" maxlength="240" placeholder="dejá un mensajito..." required>
+            <button type="submit">tag!</button>
+          </form>
         </div>
-        <form method="post" action="{{ url_for('shout') }}">
-          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
-          <input type="hidden" name="next" value="{{ request.path }}#tagboard">
-          <input type="text" name="body" maxlength="240" placeholder="dejá un mensajito..." required>
-          <button type="submit">tag!</button>
-        </form>
+      </div>
+
+      <div class="widget inset center">
+        <h4>visitas</h4>
+        <div class="stamp">
+          <div class="stamp-in">
+            <span class="moon"></span>
+            <span class="pines">▲▲▲</span>
+            <div class="odometer">{% for d in '%06d' % (settings.visits|int) %}<span>{{ d }}</span>{% endfor %}</div>
+            <span class="country">{{ settings.town_name.split(' ')[-1]|lower }}</span>
+            <span class="num">{{ settings.season[-2:] }}</span>
+          </div>
+        </div>
+        <div class="tiny">correo del pueblo · desde {{ settings.season }}</div>
       </div>
 
       <div class="widget">
@@ -113,8 +121,18 @@
       </div>
 
       <div class="widget">
-        <h4>humor</h4>
+        <h4>humor del pueblo</h4>
         <div class="pre">{{ settings.town_mood }}</div>
+      </div>
+
+      <div class="widget inset">
+        <h4>en mis bolsillos</h4>
+        <div class="pockets">
+          <span class="sticker ticket">boleto<br>tren 7:40<br>n° 0413</span>
+          <span class="sticker tape-cas">mixtape<i>◉ ◉</i>lado b</span>
+          <span class="sticker phone"><b>sin señal</b>▦▦▦</span>
+          <span class="sticker note">nos vemos en el mirador</span>
+        </div>
       </div>
 
       {% if archive %}
@@ -133,11 +151,15 @@
         {% endfor %}
       </div>
       {% endif %}
+
+      <div class="center">
+        <div class="construction"><span>en construcción</span></div>
+      </div>
     </aside>
   </div>
 
   <footer class="site">
-    hecho a mano en notepad, {{ settings.season }} · optimizado para módem de 56k (es broma. o no.)
+    hecho a mano en el cyber de la estación, {{ settings.season }} · optimizado para módem de 56k (es broma. o no.)
     <div class="webring">
       <a href="{{ url_for('blog') }}">&lt;prev</a><a href="{{ url_for('index') }}">webring del pueblo</a><a href="{{ url_for('characters') }}">next&gt;</a>
     </div>
@@ -146,7 +168,7 @@
       <span class="badge88 b2">hecho con<br>♥ y miedo</span>
       <span class="badge88 b3">no hay<br>señal</span>
       <span class="badge88 b4">html 4.01</span>
-      <span class="badge88 b5">✝ goth ✝</span>
+      <span class="badge88 b5">bosque ❦</span>
     </div>
   </footer>
 

@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="only light">
 <title>{{ settings.site_title }} // entrar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Reenie+Beanie&family=Silkscreen&family=Special+Elite&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="gate">
@@ -37,7 +37,7 @@
     </div>
     <div class="dialup"></div>
 
-    {% with cls='gate-forest', color='#3a3f39' %}{% include '_forest.html' %}{% endwith %}
+    {% with cls='gate-forest', color='#4f4b33' %}{% include '_forest.html' %}{% endwith %}
     <p class="small">
       {{ settings.town_name }} · {{ settings.season }}<br>
       ¿sos el master? <a href="{{ url_for('master_login') }}">entrá por acá</a>
