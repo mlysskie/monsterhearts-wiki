@@ -24,7 +24,17 @@ app.config.update(
 app.teardown_appcontext(db.close_db)
 
 MASTER_USER = os.environ.get("MASTER_USER", "master")
-MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "")
+MASTER_PASSWORD = os.environ.get("MASTER_PASSWORD", "").strip()
+
+# diagnóstico en los logs de Railway: qué variables encontró (sin mostrar valores)
+print("[config] base de datos:", "postgres" if db.IS_PG else f"SQLITE TEMPORAL ({db.SQLITE_PATH}) — falta DATABASE_URL",
+      flush=True)
+for _var in ["DATABASE_URL", "SECRET_KEY", "MASTER_USER", "MASTER_PASSWORD", "INITIAL_ACCESS_CODE"]:
+    print(f"[config] {_var}:", "ok" if os.environ.get(_var, "").strip() else "NO CONFIGURADA", flush=True)
+_similar = [k for k in os.environ if "MASTER" in k.upper() and k not in ("MASTER_USER", "MASTER_PASSWORD")]
+if _similar:
+    print("[config] ojo, variables con nombre parecido (¿typo o espacios?):", [repr(k) for k in _similar], flush=True)
+
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 POSTS_PER_PAGE = 6
