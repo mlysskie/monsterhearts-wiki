@@ -1,0 +1,111 @@
+{% extends 'net/base.html' %}
+{% from 'net/_macros.html' import avatar, post_card, composer with context %}
+{% block title %}inicio{% endblock %}
+{% block content %}
+{% set me = net_me() %}
+<div class="ncols">
+  <div>
+    {% if me %}
+    <div class="nbox">
+      <h3>hola, {{ me.display_name }}!</h3>
+      <div class="nbox-body center">
+        <a href="{{ url_for('net.profile', handle=me.handle) }}">{{ avatar(me, 'lg') }}</a>
+        <div class="stats-row">
+          <a href="{{ url_for('net.followers', handle=me.handle) }}"><b>{{ stats.followers }}</b>seguidores</a>
+          <a href="{{ url_for('net.followers', handle=me.handle, ver='siguiendo') }}"><b>{{ stats.following }}</b>siguiendo</a>
+          <a href="{{ url_for('net.profile_posts', handle=me.handle) }}"><b>{{ stats.posts }}</b>posts</a>
+          <span><b>{{ stats.likes }}</b>me gusta</span>
+        </div>
+        <p class="muted">vistas a tu perfil: <span class="views">{{ '%06d' % me.views }}</span></p>
+        <p>
+          <a class="nbtn" href="{{ url_for('net.profile', handle=me.handle) }}">ver mi perfil</a>
+          <a class="nbtn" href="{{ url_for('net.edit', handle=me.handle) }}">editar / decorar</a>
+        </p>
+      </div>
+    </div>
+    <div class="nbox">
+      <h3>actividad</h3>
+      <div class="nbox-body">
+        <ul class="events">
+          {% for e in events %}
+          <li>
+            <a href="{{ url_for('net.profile', handle=e.handle) }}">{{ e.display_name }}</a>
+            {% if e.kind == 'like' %}le dio ♥ a <a href="{{ url_for('net.post', post_id=e.post_id) }}">tu post</a>
+            {% elif e.kind == 'comment' %}comentó <a href="{{ url_for('net.post', post_id=e.post_id) }}">tu post</a>: «{{ e.body|truncate(50) }}»
+            {% elif e.kind == 'wall' %}te dejó un <a href="{{ url_for('net.profile', handle=me.handle) }}#comentarios">comentario</a>: «{{ e.body|truncate(50) }}»
+            {% elif e.kind == 'follow' %}empezó a seguirte
+            {% endif %}
+            <span class="when">{{ e.created_at|fecha(True) }}</span>
+          </li>
+          {% else %}
+          <li class="muted">todavía no pasó nada. andá a saludar a alguien!</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% else %}
+    <div class="nbox">
+      <h3>entrar a pueblonet</h3>
+      <div class="nbox-body">
+        <form method="post" action="{{ url_for('net.login') }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <div class="frow"><label for="h">usuario</label><input id="h" type="text" name="handle" required autocomplete="username"></div>
+          <div class="frow"><label for="pw">contraseña</label><input id="pw" type="password" name="password" required autocomplete="current-password"></div>
+          <button type="submit" class="go">entrar</button>
+        </form>
+        <p class="muted" style="margin-top:8px">¿no tenés perfil? <a href="{{ url_for('net.signup') }}">creá uno gratis!</a> (de verdad es gratis, es 2003)</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if all_profiles is defined %}
+    <div class="nbox">
+      <h3>master: usar un perfil</h3>
+      <div class="nbox-body">
+        <p class="muted">entrás como cualquier perfil sin contraseña. ideal para manejar a los npcs.</p>
+        {% for p in all_profiles %}
+        <form method="post" action="{{ url_for('net.login_as', pid=p.id) }}" style="margin:0 0 3px">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button type="submit" style="width:100%;text-align:left">{{ '★ ' if p.is_npc }}{{ p.display_name }} <span class="muted">@{{ p.handle }}</span>{% if me and me.id == p.id %} ✔{% endif %}</button>
+        </form>
+        {% else %}
+        <p class="muted">no hay perfiles todavía.</p>
+        {% endfor %}
+        <p style="margin-top:6px"><a class="nbtn go" href="{{ url_for('net.signup') }}">+ crear perfil de npc</a></p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="nbox">
+      <h3>gente nueva en el pueblo <a href="{{ url_for('net.people') }}">[ver todos]</a></h3>
+      <div class="nbox-body">
+        <div class="people">
+          {% for p in newest %}
+          <a class="person" href="{{ url_for('net.profile', handle=p.handle) }}">{{ avatar(p) }}<b>{{ p.display_name }}</b>{% if is_online(p) %}<span class="on-dot">● en línea</span>{% endif %}</a>
+          {% else %}
+          <span class="muted">nadie todavía.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    {% if me %}{{ composer(url_for('net.home')) }}{% else %}
+    <div class="nbox">
+      <h3>bienvenidx a pueblonet</h3>
+      <div class="nbox-body">
+        <p>la red social del pueblo. armate tu perfil, subí fotos, contá tu día, seguí a la gente que te interesa (o que te da miedo) y dejá comentarios en sus muros.</p>
+        <p>cada perfil se decora como quiera: colores, fondo, fuente, canción y hasta css propio, como en los viejos tiempos.</p>
+      </div>
+    </div>
+    {% endif %}
+    <div class="nbox">
+      <h3>{{ 'tu feed' if me else 'lo último en el pueblo' }} <a href="{{ url_for('net.feed' if me else 'net.explore') }}">[ver más]</a></h3>
+      {% for p in posts %}{{ post_card(p) }}{% else %}
+      <div class="nbox-body muted">{{ 'todavía no hay posts. seguí a alguien o publicá algo!' if me else 'todavía no hay posts.' }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

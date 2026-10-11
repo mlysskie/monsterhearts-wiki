@@ -1,0 +1,98 @@
+{% macro avatar(p, size='') -%}
+{%- if p.avatar_id -%}
+<img class="av {{ size }}" src="{{ image_url(p.avatar_id) }}" alt="{{ p.display_name }}" loading="lazy">
+{%- else -%}
+<span class="av {{ size }} none">{{ (p.display_name or p.handle or '?')[:1]|upper }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro post_card(p, full=False) -%}
+{% set me = net_me() %}
+<div class="npost" id="post-{{ p.id }}">
+  <a href="{{ url_for('net.profile', handle=p.handle) }}">{{ avatar(p) }}</a>
+  <div class="npost-main">
+    <div class="npost-head">
+      <b><a href="{{ url_for('net.profile', handle=p.handle) }}">{{ p.display_name }}</a></b>
+      <span class="muted">@{{ p.handle }}</span>
+      · <a class="when" href="{{ url_for('net.post', post_id=p.id) }}">{{ p.created_at|fecha(True) }}</a>
+    </div>
+    {% if p.mood %}<div class="npost-mood">humor: <b>{{ p.mood }}</b></div>{% endif %}
+    {% if p.body %}<div class="npost-body">{{ p.body|bb }}</div>{% endif %}
+    {% if p.image_id %}<a href="{{ image_url(p.image_id) }}" target="_blank"><img class="npost-img" src="{{ image_url(p.image_id) }}" alt="" loading="lazy"></a>{% endif %}
+    <div class="npost-actions">
+      {% if me %}
+      <form class="inline" method="post" action="{{ url_for('net.like', post_id=p.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}#post-{{ p.id }}">
+        <button type="submit" class="like-btn{% if p.liked %} on{% endif %}">{{ '♥' if p.liked else '♡' }} me gusta</button>
+      </form>
+      {% endif %}
+      <span><b>{{ p.likes }}</b> me gusta{{ '' if p.likes == 1 else 'n' }}</span>
+      <a href="{{ url_for('net.post', post_id=p.id) }}#comentarios">{{ p.ncomments }} comentario{{ '' if p.ncomments == 1 else 's' }}</a>
+      {% if me and (me.id == p.profile_id or is_master()) %}
+      <form class="inline" method="post" action="{{ url_for('net.delete_post', post_id=p.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path if not full else url_for('net.profile', handle=p.handle) }}">
+        <button type="submit" data-confirm="¿borrar? click otra vez" style="font-size:9.5px;padding:0 5px">borrar</button>
+      </form>
+      {% elif is_master() %}
+      <form class="inline" method="post" action="{{ url_for('net.delete_post', post_id=p.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <button type="submit" data-confirm="¿borrar? click otra vez" style="font-size:9.5px;padding:0 5px">borrar (master)</button>
+      </form>
+      {% endif %}
+    </div>
+
+    {% if p.comments or me %}
+    <div class="ncomments">
+      {% if not full and p.ncomments > p.comments|length %}
+      <div class="muted"><a href="{{ url_for('net.post', post_id=p.id) }}#comentarios">ver los {{ p.ncomments }} comentarios</a></div>
+      {% endif %}
+      {% for c in p.comments %}
+      <div class="ncomment">
+        <a href="{{ url_for('net.profile', handle=c.handle) }}">{{ avatar(c, 'xs') }}</a>
+        <div class="txt">
+          <b><a href="{{ url_for('net.profile', handle=c.handle) }}">{{ c.display_name }}</a></b> {{ c.body }}
+          <span class="when">{{ c.created_at|fecha(True) }}</span>
+          {% if is_master() or (me and me.id in (c.author_id, p.profile_id)) %}
+          <form method="post" action="{{ url_for('net.delete_comment', comment_id=c.id) }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}#post-{{ p.id }}">
+            <button type="submit" title="borrar comentario">x</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% if me %}
+      <form class="quick-comment" method="post" action="{{ url_for('net.comment_post', post_id=p.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}#post-{{ p.id }}">
+        <input type="text" name="body" maxlength="2000" placeholder="comentar como {{ me.display_name }}..." required>
+        <button type="submit">enviar</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro composer(next_url) -%}
+{% set me = net_me() %}
+<div class="nbox composer">
+  <h3>¿qué está pasando, {{ me.display_name }}?</h3>
+  <div class="nbox-body">
+    <form method="post" action="{{ url_for('net.new_post') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <textarea name="body" maxlength="4000" placeholder="contale al pueblo..."></textarea>
+      <div class="row">
+        humor: <input type="text" name="mood" maxlength="80" placeholder="ej: aburrida :/">
+        foto: <input type="file" name="image" accept="image/*">
+        <button type="submit" class="go">publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{%- endmacro %}

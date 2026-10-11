@@ -1,0 +1,150 @@
+{% extends 'net/base.html' %}
+{% block title %}editar perfil{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+<input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<div class="ncols">
+  <div>
+    <div class="nbox">
+      <h3>editando a @{{ p.handle }} <a href="{{ url_for('net.profile', handle=p.handle) }}">[ver perfil]</a></h3>
+      <div class="nbox-body">
+        <div class="frow"><label>nombre para mostrar</label><input type="text" name="display_name" maxlength="60" value="{{ p.display_name }}"></div>
+        <div class="frow"><label>frase / estado</label><input type="text" name="status_text" maxlength="140" value="{{ p.status_text }}" placeholder="ej: observando"></div>
+        <div class="frow"><label>humor</label><input type="text" name="mood" maxlength="80" value="{{ p.mood }}" placeholder="ej: aburrida :/"></div>
+        <div class="frow"><label>titular del perfil</label><input type="text" name="headline" maxlength="140" value="{{ p.headline }}" placeholder="ej: no me sigan si no me conocen"></div>
+        <div class="frow"><label>edad</label><input type="text" name="age" maxlength="40" value="{{ p.age }}" placeholder="ej: 16 años"></div>
+        <div class="frow"><label>signo</label><input type="text" name="zodiac" maxlength="40" value="{{ p.zodiac }}" placeholder="ej: escorpio ♏"></div>
+        <div class="frow"><label>escuela / curso</label><input type="text" name="school" maxlength="80" value="{{ p.school }}" placeholder="ej: 4°B, secundaria hollow pine"></div>
+        <div class="frow"><label>canción del perfil</label><input type="text" name="song" maxlength="120" value="{{ p.song }}" placeholder="ej: Mazzy Star — Fade Into You"></div>
+      </div>
+    </div>
+
+    <div class="nbox">
+      <h3>fotos</h3>
+      <div class="nbox-body">
+        <div class="frow"><label>foto de perfil</label>
+          {% if p.avatar_id %}<div class="img-now"><img src="{{ image_url(p.avatar_id) }}" alt=""><label style="font-weight:400"><input type="checkbox" name="remove_avatar" value="1"> quitar</label></div>{% endif %}
+          <input type="file" name="avatar" accept="image/*"></div>
+        <div class="frow"><label>portada</label>
+          {% if p.cover_id %}<div class="img-now"><img src="{{ image_url(p.cover_id) }}" alt=""><label style="font-weight:400"><input type="checkbox" name="remove_cover" value="1"> quitar</label></div>{% endif %}
+          <input type="file" name="cover" accept="image/*"></div>
+        <div class="frow"><label>fondo de la página</label>
+          {% if p.bg_id %}<div class="img-now"><img src="{{ image_url(p.bg_id) }}" alt=""><label style="font-weight:400"><input type="checkbox" name="remove_bg" value="1"> quitar</label></div>{% endif %}
+          <input type="file" name="bg" accept="image/*">
+          <div style="font-size:11px;margin-top:3px">
+            <label style="font-weight:400;display:inline"><input type="radio" name="bg_mode" value="cover" {% if style.bg_mode != 'tile' %}checked{% endif %}> estirado</label>
+            <label style="font-weight:400;display:inline"><input type="radio" name="bg_mode" value="tile" {% if style.bg_mode == 'tile' %}checked{% endif %}> en mosaico (re 2003)</label>
+          </div>
+        </div>
+        <p class="hint">jpg, png, gif o webp de hasta 5MB. los gifs animados se mueven ;)</p>
+      </div>
+    </div>
+
+    <div class="nbox">
+      <h3>cuenta</h3>
+      <div class="nbox-body">
+        <div class="frow"><label>contraseña nueva</label><input type="password" name="new_password" autocomplete="new-password" placeholder="dejala vacía para no cambiarla"></div>
+        {% if is_master() %}
+        <div class="frow"><label>personaje de la wiki</label>
+          <select name="character_id">
+            <option value="">— ninguno —</option>
+            {% for c in chars %}<option value="{{ c.id }}" {% if p.character_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+          </select></div>
+        <div class="frow"><label style="font-weight:400"><input type="checkbox" name="is_npc" value="1" {% if p.is_npc %}checked{% endif %}> es un npc</label></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="nbox">
+      <h3>sobre vos</h3>
+      <div class="nbox-body">
+        <div class="frow"><label>acerca de mí</label><textarea name="about_me" style="min-height:120px">{{ p.about_me }}</textarea></div>
+        <div class="frow"><label>a quién me gustaría conocer</label><textarea name="want_to_meet">{{ p.want_to_meet }}</textarea></div>
+        <p class="hint">podés usar [b]negrita[/b], [i]cursiva[/i], [color=red]color[/color], [center]...[/center], [blink]...[/blink], [marquee]...[/marquee] y [[Nombre]] para linkear a la wiki.</p>
+      </div>
+    </div>
+
+    <div class="nbox">
+      <h3>intereses</h3>
+      <div class="nbox-body">
+        <div class="frow"><label>en general</label><input type="text" name="int_general" maxlength="300" value="{{ p.int_general }}"></div>
+        <div class="frow"><label>música</label><input type="text" name="int_music" maxlength="300" value="{{ p.int_music }}"></div>
+        <div class="frow"><label>películas</label><input type="text" name="int_movies" maxlength="300" value="{{ p.int_movies }}"></div>
+        <div class="frow"><label>televisión</label><input type="text" name="int_tv" maxlength="300" value="{{ p.int_tv }}"></div>
+        <div class="frow"><label>libros</label><input type="text" name="int_books" maxlength="300" value="{{ p.int_books }}"></div>
+        <div class="frow"><label>héroes</label><input type="text" name="int_heroes" maxlength="300" value="{{ p.int_heroes }}"></div>
+      </div>
+    </div>
+
+    <div class="nbox">
+      <h3>top 8 de amigos</h3>
+      <div class="nbox-body">
+        {% if others %}
+        <div class="top-pick">
+          {% for i in range(8) %}
+          <select name="top">
+            <option value="">#{{ i + 1 }} — vacío —</option>
+            {% for o in others %}<option value="{{ o.id }}" {% if top|length > i and top[i] == o.id %}selected{% endif %}>{{ o.display_name }} (@{{ o.handle }})</option>{% endfor %}
+          </select>
+          {% endfor %}
+        </div>
+        <p class="hint">el drama de elegir el top 8 es parte del juego.</p>
+        {% else %}<p class="muted">cuando haya más gente vas a poder armar tu top 8.</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="nbox">
+      <h3>diseño del perfil</h3>
+      <div class="nbox-body">
+        <div class="frow"><label>tema</label>
+          <div class="themes">
+            {% for key, (label, t) in themes.items() %}
+            <label class="theme-opt">
+              <input type="radio" name="theme" value="{{ key }}" {% if p.theme == key %}checked{% endif %}>
+              <span class="sw"><i style="background:{{ t.page }}"></i><i style="background:{{ t.head }}"></i><i style="background:{{ t.box }}"></i><i style="background:{{ t.accent }}"></i></span>
+              {{ label }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="frow"><label>fuente <span class="muted">(gótica, manuscrita y pixel van solo en títulos para que se lea)</span></label>
+          <select name="font">
+            <option value="">— la del tema —</option>
+            {% for key, (label, stack, g) in fonts.items() %}<option value="{{ key }}" {% if style.custom.font == key %}selected{% endif %} style="font-family:{{ stack }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="frow">
+          <label style="font-weight:400"><input type="checkbox" name="use_custom_colors" value="1" {% if style.custom.page %}checked{% endif %}> usar mis propios colores (pisan los del tema)</label>
+          <div class="colors">
+            {% for key, label in [('page','fondo'),('box','cajas'),('head','barras'),('head_text','texto de barras'),('text','texto'),('link','links'),('accent','destacados')] %}
+            <label><input type="color" name="c_{{ key }}" value="{{ style[key] }}"> {{ label }}</label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="frow"><label>opacidad de las cajas: <span class="muted">(bajala si tenés fondo con foto)</span></label>
+          <input type="range" name="box_alpha" min="40" max="100" value="{{ style.box_alpha }}" style="width:100%">
+        </div>
+        <div class="frow"><label>css propio (avanzado, como en myspace)</label>
+          <textarea name="custom_css" style="min-height:140px;font-family:'Courier New',monospace;font-size:11px" placeholder=".prof-name { color: hotpink; text-shadow: 0 0 8px #fff; }&#10;.nbox { border-radius: 0; }">{{ p.custom_css }}</textarea>
+          <p class="hint">solo afecta a tu perfil. clases útiles: <code>.prof-name</code> <code>.nbox</code> <code>.nbox &gt; h3</code> <code>.prof-cover</code> <code>.top8</code> <code>.wall-item</code> <code>.song</code>. para imágenes usá <code>url('/img/NÚMERO')</code> de fotos que hayas subido; links externos se bloquean.</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:right"><button type="submit" class="go" style="font-size:13px;padding:4px 18px">guardar perfil</button></p>
+  </div>
+</div>
+</form>
+
+<div class="nbox" style="max-width:420px">
+  <h3>zona peligrosa</h3>
+  <div class="nbox-body">
+    <form method="post" action="{{ url_for('net.delete_profile', handle=p.handle) }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="danger" data-confirm="¿seguro? se borra todo. click otra vez">borrar este perfil</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

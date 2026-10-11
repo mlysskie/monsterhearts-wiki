@@ -1,0 +1,199 @@
+{% extends 'net/base.html' %}
+{% from 'net/_macros.html' import avatar, post_card with context %}
+{% block title %}{{ p.display_name }}{% endblock %}
+{% block head %}
+{% if style.font_google %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family={{ style.font_google }}&display=swap" rel="stylesheet">
+{% endif %}
+<style>
+:root{
+  --p-page:{{ style.page }};
+  --p-box:{{ style.box }};
+  --p-head:{{ style.head }};
+  --p-head-text:{{ style.head_text }};
+  --p-text:{{ style.text }};
+  --p-link:{{ style.link }};
+  --p-accent:{{ style.accent }};
+  --p-font:{{ style.body_stack|safe }};
+  --p-title-font:{{ style.font_stack|safe }};
+  --p-alpha:{{ style.box_alpha }};
+}
+{% if p.bg_id %}
+body.net{
+  background-image:url('{{ image_url(p.bg_id) }}');
+  {% if style.bg_mode == 'tile' %}background-repeat:repeat;background-size:auto;{% else %}background-repeat:no-repeat;background-size:cover;background-position:center;{% endif %}
+}
+{% endif %}
+</style>
+{% if css %}
+<!-- css propio de @{{ p.handle }} -->
+<style>
+{{ css|safe }}
+</style>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% set me = net_me() %}
+<div class="profile-page">
+  {% if p.cover_id %}<div class="prof-cover" style="background-image:url('{{ image_url(p.cover_id) }}')"></div>{% endif %}
+
+  <div class="ncols">
+    <!-- columna izquierda -->
+    <div>
+      <h1 class="prof-name">{{ p.display_name }}</h1>
+      {% if can_edit %}<p class="prof-line">[ <a href="{{ url_for('net.edit', handle=p.handle) }}">editar perfil</a> ]</p>{% endif %}
+
+      <div class="prof-top">
+        <div>{{ avatar(p, 'lg') }}</div>
+        <div class="prof-side">
+          {% if p.status_text %}<p class="status">“{{ p.status_text }}”</p>{% endif %}
+          {% if p.age %}<p>{{ p.age }}</p>{% endif %}
+          {% if p.zodiac %}<p>{{ p.zodiac }}</p>{% endif %}
+          {% if p.school %}<p>{{ p.school }}</p>{% endif %}
+          <p style="margin-top:8px">
+            {% if online %}<span class="online-badge blink">¡ONLINE!</span>
+            {% elif p.last_seen %}<span class="muted">última vez: {{ p.last_seen|fecha(True) }}</span>{% endif %}
+          </p>
+          {% if p.is_npc %}<p class="muted">★ gente del pueblo</p>{% endif %}
+        </div>
+      </div>
+
+      {% if p.mood %}<p class="prof-line"><b>humor:</b> {{ p.mood }}</p>{% endif %}
+      <p class="prof-line"><b>ver mis:</b>
+        <a href="{{ url_for('net.profile_posts', handle=p.handle) }}">posts</a> |
+        <a href="#fotos">fotos</a> |
+        <a href="{{ url_for('net.followers', handle=p.handle) }}">seguidores</a>
+        {% if character %}| <a href="{{ url_for('character', slug=character.slug) }}">ficha en la wiki</a>{% endif %}
+      </p>
+      {% if p.song %}<div class="song"><span>♪ ahora sonando: {{ p.song }} ♪</span></div>{% endif %}
+
+      <div class="nbox">
+        <h3>contactando a {{ p.display_name }}</h3>
+        <div class="nbox-body">
+          {% if me and me.id != p.id %}
+          <div class="contact">
+            <form method="post" action="{{ url_for('net.follow', handle=p.handle) }}">
+              <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="{{ '' if following else 'go' }}">{{ '✔ siguiendo' if following else '+ seguir' }}</button>
+            </form>
+            <a class="nbtn" href="#comentarios">dejar comentario</a>
+            <a class="nbtn" href="{{ url_for('net.profile_posts', handle=p.handle) }}">ver sus posts</a>
+            <a class="nbtn" href="{{ url_for('net.followers', handle=p.handle, ver='siguiendo') }}">a quién sigue</a>
+          </div>
+          {% if follows_me %}<p class="muted center" style="margin-top:6px">{{ p.display_name }} te sigue ♥</p>{% endif %}
+          {% elif me %}
+          <p class="muted center">este es tu perfil. así lo ve el resto del pueblo.</p>
+          {% else %}
+          <p class="muted center"><a href="{{ url_for('net.home') }}">entrá</a> o <a href="{{ url_for('net.signup') }}">creá tu perfil</a> para seguir y comentar.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="nbox">
+        <h3>url de pueblonet</h3>
+        <div class="nbox-body url-box">pueblonet/u/{{ p.handle }}<br><span class="muted">vistas al perfil:</span> <span class="views">{{ '%06d' % p.views }}</span></div>
+      </div>
+
+      {% if p.int_general or p.int_music or p.int_movies or p.int_tv or p.int_books or p.int_heroes %}
+      <div class="nbox">
+        <h3>intereses de {{ p.display_name }}</h3>
+        <table class="int-table">
+          {% for label, val in [('en general', p.int_general), ('música', p.int_music), ('películas', p.int_movies), ('televisión', p.int_tv), ('libros', p.int_books), ('héroes', p.int_heroes)] %}
+          {% if val %}<tr><th>{{ label }}</th><td>{{ val }}</td></tr>{% endif %}
+          {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- columna derecha -->
+    <div>
+      {% if p.headline %}
+      <div class="nbox"><div class="nbox-body center"><b style="font-size:14px">{{ p.headline }}</b></div></div>
+      {% endif %}
+
+      <div class="nbox">
+        <h3>números de {{ p.display_name }}</h3>
+        <div class="nbox-body">
+          <div class="stats-row">
+            <a href="{{ url_for('net.followers', handle=p.handle) }}"><b>{{ stats.followers }}</b>seguidores</a>
+            <a href="{{ url_for('net.followers', handle=p.handle, ver='siguiendo') }}"><b>{{ stats.following }}</b>siguiendo</a>
+            <a href="{{ url_for('net.profile_posts', handle=p.handle) }}"><b>{{ stats.posts }}</b>posts</a>
+            <span><b>{{ stats.likes }}</b>♥ recibidos</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nbox">
+        <h3>últimos posts de {{ p.display_name }} <a href="{{ url_for('net.profile_posts', handle=p.handle) }}">[ver todos]</a></h3>
+        {% for post in posts %}{{ post_card(post) }}{% else %}
+        <div class="nbox-body muted center">todavía no publicó nada.</div>
+        {% endfor %}
+      </div>
+
+      <div class="nbox blurb">
+        <h3>resumen de {{ p.display_name }}</h3>
+        <div class="nbox-body">
+          <h4>acerca de mí:</h4>
+          <div class="txt">{{ p.about_me|bb or '...' }}</div>
+          <h4>a quién me gustaría conocer:</h4>
+          <div class="txt">{{ p.want_to_meet|bb or '...' }}</div>
+        </div>
+      </div>
+
+      <div class="nbox">
+        <h3>espacio amigo de {{ p.display_name }} <a href="{{ url_for('net.followers', handle=p.handle) }}">[ver todos]</a></h3>
+        <div class="nbox-body">
+          <p class="center" style="margin-bottom:8px"><b>{{ p.display_name }}</b> tiene <span class="accent">{{ stats.followers }}</span> seguidor{{ '' if stats.followers == 1 else 'es' }}.</p>
+          <div class="top8">
+            {% for f in top %}
+            <a href="{{ url_for('net.profile', handle=f.handle) }}">{{ avatar(f) }}{{ f.display_name }}{% if is_online(f) %} <span class="on-dot">●</span>{% endif %}</a>
+            {% else %}
+            <span class="muted" style="grid-column:1/-1;text-align:center">todavía sin amigos. ¡seguilo/a!</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% if photos %}
+      <div class="nbox" id="fotos">
+        <h3>fotos de {{ p.display_name }}</h3>
+        <div class="nbox-body photos">
+          {% for ph in photos %}<a href="{{ url_for('net.post', post_id=ph.id) }}"><img src="{{ image_url(ph.image_id) }}" alt="" loading="lazy"></a>{% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="nbox" id="comentarios">
+        <h3>comentarios de amigos de {{ p.display_name }}</h3>
+        <div class="nbox-body">
+          <p class="center"><b>mostrando {{ wall|length }} comentario{{ '' if wall|length == 1 else 's' }}</b></p>
+          {% if me %}
+          <form method="post" action="{{ url_for('net.comment_wall', handle=p.handle) }}" style="margin-bottom:8px">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <textarea name="body" maxlength="2000" required placeholder="dejale algo a {{ p.display_name }}... (comentás como {{ me.display_name }})"></textarea>
+            <button type="submit" class="go" style="margin-top:4px">publicar comentario</button>
+          </form>
+          {% endif %}
+          {% for c in wall %}
+          <div class="wall-item">
+            <div class="who"><a href="{{ url_for('net.profile', handle=c.handle) }}">{{ avatar(c) }}<br>{{ c.display_name }}</a></div>
+            <div class="txt"><span class="when">{{ c.created_at|fecha(True) }}</span>{{ c.body }}
+              {% if is_master() or (me and me.id in (c.author_id, p.id)) %}
+              <form class="inline" method="post" action="{{ url_for('net.delete_comment', comment_id=c.id) }}">
+                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ url_for('net.profile', handle=p.handle) }}#comentarios">
+                <button type="submit" data-confirm="¿seguro?" style="font-size:9px;padding:0 4px">borrar</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

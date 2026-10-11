@@ -22,6 +22,7 @@
       {% if c.eyes %}<tr><th>ojos</th><td>{{ c.eyes }}</td></tr>{% endif %}
       {% if c.origin %}<tr><th>origen</th><td>{{ c.origin }}</td></tr>{% endif %}
       {% if c.conditions %}<tr><th>condiciones</th><td>{{ c.conditions }}</td></tr>{% endif %}
+      {% if net_profile %}<tr><th>pueblonet</th><td><a href="{{ url_for('net.profile', handle=net_profile.handle) }}">@{{ net_profile.handle }}</a></td></tr>{% endif %}
     </table>
   </aside>
 

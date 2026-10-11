@@ -1,0 +1,22 @@
+{% extends 'net/base.html' %}
+{% from 'net/_macros.html' import post_card, composer with context %}
+{% block title %}{{ mode }}{% endblock %}
+{% block content %}
+{% set me = net_me() %}
+{% if me and mode != 'perfil' %}{{ composer(request.full_path) }}{% endif %}
+<div class="nbox">
+  <h3>
+    {% if mode == 'feed' %}mi feed: vos y la gente que seguís
+    {% elif mode == 'perfil' %}todos los posts de {{ owner.display_name }} <a href="{{ url_for('net.profile', handle=owner.handle) }}">[volver al perfil]</a>
+    {% else %}explorar: todo lo que se publica en el pueblo{% endif %}
+  </h3>
+  {% for p in posts %}{{ post_card(p) }}{% else %}
+  <div class="nbox-body muted">no hay nada por acá todavía.</div>
+  {% endfor %}
+</div>
+<div class="pager">
+  <span>{% if pg > 1 %}<a href="?p={{ pg - 1 }}">« más nuevos</a>{% endif %}</span>
+  <span>página {{ pg }}</span>
+  <span>{% if more %}<a href="?p={{ pg + 1 }}">más viejos »</a>{% endif %}</span>
+</div>
+{% endblock %}

@@ -19,6 +19,25 @@ Monsterhearts ambientada en un pueblo con bosque. Hecho con Flask + PostgreSQL, 
 - Las imágenes se guardan **en Postgres**, así no se pierden en los redeploys de Railway
   (el disco de Railway es efímero). Máx 5MB por imagen.
 
+## pueblonet (la red social del pueblo)
+
+En `/red` hay una red social estilo SpaceHey/MySpace de 2003, dentro del mismo sitio privado:
+
+- Cada jugador crea su perfil con **usuario y contraseña propios** (distintos del código del sitio)
+  y lo puede vincular a su personaje de la wiki.
+- El **master** crea perfiles de NPCs (con o sin contraseña) y puede **entrar como cualquier perfil**
+  desde el inicio de pueblonet para comentar, postear o seguir como ese NPC. También puede borrar
+  cualquier post o comentario.
+- Perfil con foto, portada, fondo, estado, humor, edad, signo, escuela, canción, "acerca de mí",
+  "a quién me gustaría conocer", intereses, **Top 8**, fotos, contador de vistas y "¡ONLINE!".
+- **Posts** con foto y humor, **me gusta** con contador, comentarios, **seguir** con contador de
+  seguidores/siguiendo, **feed** de la gente que seguís, **explorar** todo, buscador de gente y
+  **actividad** (quién te dio me gusta, te comentó o te empezó a seguir).
+- Cada perfil se decora: 7 temas, colores propios, fuente, opacidad de cajas, fondo estirado o en
+  mosaico y **CSS propio** (filtrado: no permite scripts ni cargar cosas de afuera).
+
+Las tablas nuevas (`net_*`) se crean solas al arrancar, también en una base que ya existía.
+
 ## Deploy en Railway
 
 1. En Railway: **New Project → Deploy from GitHub repo** y elegí este repo.

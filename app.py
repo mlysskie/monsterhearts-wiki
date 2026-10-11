@@ -134,9 +134,9 @@ def touch_presence():
     if not name:
         return
     db.execute(
-        "INSERT INTO presence (name, last_seen) VALUES (%s, CURRENT_TIMESTAMP) "
-        "ON CONFLICT (name) DO UPDATE SET last_seen = CURRENT_TIMESTAMP",
-        (name,),
+        "INSERT INTO presence (name, last_seen) VALUES (%s, %s) "
+        "ON CONFLICT (name) DO UPDATE SET last_seen = EXCLUDED.last_seen",
+        (name, datetime.utcnow()),
     )
 
 
@@ -395,8 +395,10 @@ def character(slug):
         "ORDER BY created_at DESC LIMIT 10",
         (True, f"%[[{c['name']}]]%"),
     )
+    net_profile = db.query("SELECT handle, display_name FROM net_profiles WHERE character_id=%s",
+                           (c["id"],), one=True)
     return page("character.html", c=c, out_strings=out_strings, in_strings=in_strings,
-                mentions=mentions)
+                mentions=mentions, net_profile=net_profile)
 
 
 @app.route("/lore")
@@ -700,6 +702,15 @@ def master_comment_delete(comment_id):
 def master_shout_delete(shout_id):
     db.execute("DELETE FROM shouts WHERE id=%s", (shout_id,))
     return redirect(safe_next(request.form.get("next")))
+
+
+# ---------------------------------------------------------------- pueblonet (red social)
+
+import net  # noqa: E402
+
+net.register(app, has_access=has_access, touch_presence=touch_presence, is_master=is_master,
+             safe_next=safe_next, image_url=image_url, save_upload=save_upload,
+             delete_image=delete_image, get_settings=get_settings, as_bool=as_bool)
 
 
 # ---------------------------------------------------------------- errores

@@ -97,6 +97,69 @@ CREATE TABLE IF NOT EXISTS presence (
     name TEXT PRIMARY KEY,
     last_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- pueblonet: la red social del pueblo
+CREATE TABLE IF NOT EXISTS net_profiles (
+    id SERIAL PRIMARY KEY,
+    handle TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    password_hash TEXT,
+    character_id INTEGER REFERENCES characters(id) ON DELETE SET NULL,
+    is_npc BOOLEAN NOT NULL DEFAULT FALSE,
+    avatar_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
+    cover_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
+    bg_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
+    status_text TEXT NOT NULL DEFAULT '',
+    mood TEXT NOT NULL DEFAULT '',
+    headline TEXT NOT NULL DEFAULT '',
+    age TEXT NOT NULL DEFAULT '',
+    zodiac TEXT NOT NULL DEFAULT '',
+    school TEXT NOT NULL DEFAULT '',
+    about_me TEXT NOT NULL DEFAULT '',
+    want_to_meet TEXT NOT NULL DEFAULT '',
+    int_general TEXT NOT NULL DEFAULT '',
+    int_music TEXT NOT NULL DEFAULT '',
+    int_movies TEXT NOT NULL DEFAULT '',
+    int_tv TEXT NOT NULL DEFAULT '',
+    int_books TEXT NOT NULL DEFAULT '',
+    int_heroes TEXT NOT NULL DEFAULT '',
+    song TEXT NOT NULL DEFAULT '',
+    top_friends TEXT NOT NULL DEFAULT '',
+    theme TEXT NOT NULL DEFAULT 'clasico',
+    style_json TEXT NOT NULL DEFAULT '{}',
+    custom_css TEXT NOT NULL DEFAULT '',
+    views INTEGER NOT NULL DEFAULT 0,
+    last_seen TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS net_posts (
+    id SERIAL PRIMARY KEY,
+    profile_id INTEGER NOT NULL REFERENCES net_profiles(id) ON DELETE CASCADE,
+    body TEXT NOT NULL DEFAULT '',
+    mood TEXT NOT NULL DEFAULT '',
+    image_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS net_likes (
+    post_id INTEGER NOT NULL REFERENCES net_posts(id) ON DELETE CASCADE,
+    profile_id INTEGER NOT NULL REFERENCES net_profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_id, profile_id)
+);
+CREATE TABLE IF NOT EXISTS net_comments (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES net_posts(id) ON DELETE CASCADE,
+    wall_id INTEGER REFERENCES net_profiles(id) ON DELETE CASCADE,
+    author_id INTEGER NOT NULL REFERENCES net_profiles(id) ON DELETE CASCADE,
+    body TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS net_follows (
+    follower_id INTEGER NOT NULL REFERENCES net_profiles(id) ON DELETE CASCADE,
+    followee_id INTEGER NOT NULL REFERENCES net_profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (follower_id, followee_id)
+);
 """
 
 SCHEMA_SQLITE = (

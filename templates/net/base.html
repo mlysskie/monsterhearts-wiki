@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="only light">
+<title>{% block title %}pueblonet{% endblock %} | pueblonet</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='net.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body class="net">
+{% set me = net_me() %}
+<div class="net-wrap">
+  <header class="net-top">
+    <a class="net-logo" href="{{ url_for('net.home') }}">
+      <span class="ico">pn</span>
+      <span><b>pueblonet</b><small>a space for the town</small></span>
+    </a>
+    <form class="net-search" method="get" action="{{ url_for('net.people') }}">
+      <label for="nq">buscar gente:</label>
+      <input id="nq" type="text" name="q" maxlength="40">
+      <button type="submit">buscar</button>
+    </form>
+    <div class="net-who">
+      {% if me %}
+        conectadx: <a href="{{ url_for('net.profile', handle=me.handle) }}">@{{ me.handle }}</a> · <a href="{{ url_for('net.logout') }}">salir</a>
+      {% else %}
+        <a href="{{ url_for('net.home') }}">entrar</a> · <a href="{{ url_for('net.signup') }}">registrarse</a>
+      {% endif %}
+    </div>
+  </header>
+  <nav class="net-nav">
+    <a href="{{ url_for('net.home') }}">inicio</a>
+    <a href="{{ url_for('net.people') }}">gente</a>
+    {% if me %}<a href="{{ url_for('net.feed') }}">mi feed</a>{% endif %}
+    <a href="{{ url_for('net.explore') }}">explorar</a>
+    {% if me %}
+    <a href="{{ url_for('net.profile', handle=me.handle) }}">mi perfil</a>
+    <a href="{{ url_for('net.edit', handle=me.handle) }}">editar perfil</a>
+    {% else %}
+    <a href="{{ url_for('net.signup') }}">crear perfil</a>
+    {% endif %}
+    <a class="wiki" href="{{ url_for('index') }}">« volver a la wiki</a>
+  </nav>
+
+  {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+
+  {% block content %}{% endblock %}
+
+  <footer class="net-foot">
+    <div>traído a vos por el cyber de la estación · {{ settings.town_name|lower }} · {{ settings.season }}</div>
+    <div class="disc">aviso: pueblonet es una red de ficción para la campaña. no está afiliada a MySpace ni a nadie.</div>
+    <div class="bar">
+      <a href="{{ url_for('net.home') }}">inicio</a>
+      <a href="{{ url_for('net.people') }}">gente</a>
+      <a href="{{ url_for('net.explore') }}">explorar</a>
+      <a href="{{ url_for('index') }}">wiki del pueblo</a>
+    </div>
+  </footer>
+</div>
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+</body>
+</html>

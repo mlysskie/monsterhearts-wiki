@@ -1,0 +1,28 @@
+{% extends 'net/base.html' %}
+{% from 'net/_macros.html' import avatar with context %}
+{% block title %}gente{% endblock %}
+{% block content %}
+<div class="nbox">
+  <h3>
+    {% if owner is defined %}
+      {{ 'seguidores de ' if which != 'siguiendo' else 'a quién sigue ' }}{{ owner.display_name }}
+      <a href="{{ url_for('net.profile', handle=owner.handle) }}">[volver al perfil]</a>
+    {% elif q %}resultados para «{{ q }}»{% else %}toda la gente del pueblo{% endif %}
+  </h3>
+  <div class="nbox-body">
+    <div class="people">
+      {% for p in people %}
+      <a class="person" href="{{ url_for('net.profile', handle=p.handle) }}">
+        {{ avatar(p) }}
+        <b>{{ p.display_name }}</b>
+        <span class="muted">@{{ p.handle }}</span>
+        {% if p.followers is defined %}<br><span class="muted">{{ p.followers }} seguidor{{ '' if p.followers == 1 else 'es' }}</span>{% endif %}
+        {% if is_online(p) %}<br><span class="on-dot">● en línea</span>{% endif %}
+      </a>
+      {% else %}
+      <span class="muted">no hay nadie acá.</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

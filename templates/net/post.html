@@ -1,0 +1,14 @@
+{% extends 'net/base.html' %}
+{% from 'net/_macros.html' import post_card with context %}
+{% block title %}post de {{ p.display_name }}{% endblock %}
+{% block content %}
+<div class="nbox" id="comentarios">
+  <h3>post de {{ p.display_name }} <a href="{{ url_for('net.profile', handle=p.handle) }}">[ver perfil]</a></h3>
+  {{ post_card(p, full=True) }}
+  {% if likers %}
+  <div class="nbox-body muted">♥ les gusta a:
+    {% for l in likers %}<a href="{{ url_for('net.profile', handle=l.handle) }}">{{ l.display_name }}</a>{{ ', ' if not loop.last }}{% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
