@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}cómo funciona esto{% endblock %}
+{% block content %}
+  <h2 class="section-title">cómo funciona esto</h2>
+  <p class="section-sub">léeme.txt</p>
+  <article class="entry">
+    <div class="body">
+      <p>este sitio es privado: solo entra quien tiene el <b>código de acceso</b> que reparte el master. no compartas el código fuera de la mesa.</p>
+      <p><b>bitácora / lore:</b> el master sube entradas después de cada sesión o cuando se le ocurre algo. podés dejar comentarios abajo de cada una.</p>
+      <p><b>wiki:</b> cada personaje tiene su página con su historia, su skin y los <i>strings</i> que tiene sobre los demás. en la pizarra de corcho del inicio, los hilos rojos muestran quién tiene strings sobre quién.</p>
+      <p><b>tagboard:</b> el cuadrito de la barra lateral. para dejar mensajitos cortos, como en los blogs de antes.</p>
+      <p><b>en línea:</b> muestra quién pasó por el sitio en los últimos 10 minutos.</p>
+    </div>
+  </article>
+  {% if is_master() %}
+  <article class="entry">
+    <h3>para el master: formato de texto</h3>
+    <div class="body">
+      <p>en las historias y entradas podés usar estas etiquetas, al estilo foro:</p>
+      <div class="scroll-x">
+      <table class="list-table">
+        <tr><th>escribís</th><th>sale</th></tr>
+        <tr><td>[b]negrita[/b]  [i]cursiva[/i]  [u]subrayado[/u]  [s]tachado[/s]</td><td><b>negrita</b> <i>cursiva</i> <u>subrayado</u> <s>tachado</s></td></tr>
+        <tr><td>[h]subtítulo[/h]</td><td>un subtítulo</td></tr>
+        <tr><td>[color=red]texto[/color]  o  [color=#E0763A]...[/color]</td><td><span style="color:red">texto</span></td></tr>
+        <tr><td>[center]...[/center]</td><td>centrado</td></tr>
+        <tr><td>[quote]...[/quote]</td><td>cita</td></tr>
+        <tr><td>[nota]...[/nota]</td><td>post-it amarillo</td></tr>
+        <tr><td>[spoiler]...[/spoiler]</td><td>texto oculto que se abre con click</td></tr>
+        <tr><td>[blink]...[/blink]  [marquee]...[/marquee]</td><td>parpadeo / texto que corre</td></tr>
+        <tr><td>[url=https://...]link[/url]</td><td>un link</td></tr>
+        <tr><td>[img:12]  [img:12:izq]  [img:12:der]</td><td>imagen subida nº 12 (centrada, a la izquierda o a la derecha)</td></tr>
+        <tr><td>[[Nombre del personaje]]</td><td>link a su página de la wiki</td></tr>
+      </table>
+      </div>
+      <p style="margin-top:10px">dejá una línea en blanco para separar párrafos.</p>
+    </div>
+  </article>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}panel del master{% endblock %}
+{% block content %}
+  <h2 class="section-title">panel del master</h2>
+  <p class="section-sub">desde acá manejás todo el pueblo</p>
+
+  <div class="statbox">
+    {% for k, v in stats.items() %}<div><b>{{ '%04d' % v }}</b>{{ k }}</div>{% endfor %}
+  </div>
+
+  <div class="window" id="codigo">
+    <div class="titlebar"><span>código de acceso para jugadores</span><span class="x">x</span></div>
+    <div class="inner">
+      <p style="margin-top:0">código actual: <span class="codebig">{{ settings.access_code }}</span></p>
+      <p style="font-size:11px">pasáselo a tus jugadores. con eso + un apodo entran al sitio.</p>
+      <form method="post" action="{{ url_for('master_code') }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="text" name="code" maxlength="60" placeholder="nuevo código (vacío = uno al azar)">
+        <label style="font-size:11px;display:inline-block;margin:6px 0"><input type="checkbox" name="kick" value="1"> echar a todos (tienen que volver a entrar con el código nuevo)</label><br>
+        <button type="submit">cambiar código</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="titlebar"><span>wiki: personajes</span><span class="x">x</span></div>
+    <div class="inner">
+      <p style="margin-top:0"><a class="btn primary" href="{{ url_for('master_character') }}">+ nuevo personaje</a></p>
+      <div class="scroll-x">
+      <table class="list-table">
+        <tr><th>nombre</th><th>skin</th><th>estado</th><th></th></tr>
+        {% for c in chars %}
+        <tr>
+          <td><a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a></td>
+          <td>{{ c.skin }}</td>
+          <td>
+            {% if c.is_npc %}<span class="pill npc">npc</span>{% endif %}
+            {% if c.visible %}<span class="pill on">visible</span>{% else %}<span class="pill off">oculto</span>{% endif %}
+          </td>
+          <td style="white-space:nowrap">
+            <a class="btn" href="{{ url_for('master_character', char_id=c.id) }}">editar</a>
+            <form method="post" action="{{ url_for('master_character_delete', char_id=c.id) }}">
+              <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="danger" data-confirm="¿seguro? click otra vez">borrar</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4"><i>no hay personajes todavía.</i></td></tr>
+        {% endfor %}
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="titlebar"><span>blog: entradas de lore</span><span class="x">x</span></div>
+    <div class="inner">
+      <p style="margin-top:0"><a class="btn primary" href="{{ url_for('master_post') }}">+ nueva entrada</a></p>
+      <div class="scroll-x">
+      <table class="list-table">
+        <tr><th>título</th><th>fecha</th><th>estado</th><th></th></tr>
+        {% for p in all_posts %}
+        <tr>
+          <td><a href="{{ url_for('post', post_id=p.id) }}">{{ p.title }}</a></td>
+          <td style="white-space:nowrap">{{ p.created_at|fecha }}</td>
+          <td>{% if p.published %}<span class="pill on">publicada</span>{% else %}<span class="pill off">borrador</span>{% endif %}</td>
+          <td style="white-space:nowrap">
+            <a class="btn" href="{{ url_for('master_post', post_id=p.id) }}">editar</a>
+            <form method="post" action="{{ url_for('master_post_delete', post_id=p.id) }}">
+              <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="danger" data-confirm="¿seguro? click otra vez">borrar</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4"><i>no hay entradas todavía.</i></td></tr>
+        {% endfor %}
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="titlebar"><span>últimos comentarios</span><span class="x">x</span></div>
+    <div class="inner">
+      {% for c in comments %}
+      <div class="comment{% if c.is_master %} m{% endif %}">
+        <div class="who">
+          <b>{{ c.author }}</b> en <a href="{{ url_for('post', post_id=c.post_id) }}#comentarios">{{ c.title }}</a> · {{ c.created_at|fecha(True) }}
+          <form method="post" action="{{ url_for('master_comment_delete', comment_id=c.id) }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ url_for('master_home') }}">
+            <button type="submit" data-confirm="¿seguro?" style="font-size:9px;padding:0 4px">borrar</button>
+          </form>
+        </div>
+        <div style="white-space:pre-line">{{ c.body }}</div>
+      </div>
+      {% else %}
+      <i style="font-size:12px">sin comentarios.</i>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="window" id="ajustes">
+    <div class="titlebar"><span>ajustes del sitio</span><span class="x">x</span></div>
+    <div class="inner">
+      <form method="post" action="{{ url_for('master_settings') }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <div class="form-grid">
+          <label for="s1">título</label><input id="s1" type="text" name="site_title" value="{{ settings.site_title }}">
+          <label for="s2">subtítulo</label><input id="s2" type="text" name="tagline" value="{{ settings.tagline }}">
+          <label for="s3">nombre del pueblo</label><input id="s3" type="text" name="town_name" value="{{ settings.town_name }}">
+          <label for="s4">temporada / año</label><input id="s4" type="text" name="season" value="{{ settings.season }}">
+          <label for="s5">ahora sonando</label><input id="s5" type="text" name="now_playing" value="{{ settings.now_playing }}">
+          <label for="s6">humor del pueblo</label><textarea id="s6" name="town_mood" style="min-height:60px">{{ settings.town_mood }}</textarea>
+          <label for="s7">texto de la marquesina</label><textarea id="s7" name="welcome" style="min-height:60px">{{ settings.welcome }}</textarea>
+        </div>
+        <p style="margin-bottom:0"><button type="submit" class="primary">guardar ajustes</button></p>
+      </form>
+    </div>
+  </div>
+  <p style="font-size:11px">ayuda con el formato de texto: <a href="{{ url_for('help_page') }}">cómo funciona esto</a></p>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}{{ p.title if p else 'nueva entrada' }}{% endblock %}
+{% block content %}
+  <h2 class="section-title">{{ 'editar entrada' if p else 'nueva entrada' }}</h2>
+  <p class="section-sub"><a href="{{ url_for('master_home') }}">« volver al panel</a>{% if p %} · <a href="{{ url_for('post', post_id=p.id) }}">ver entrada</a>{% endif %}</p>
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+    <fieldset>
+      <legend>entrada</legend>
+      <div class="form-grid">
+        <label for="title">título *</label><input id="title" type="text" name="title" required maxlength="200" value="{{ p.title if p else '' }}">
+        <label for="mood">humor actual</label><input id="mood" type="text" name="mood" maxlength="120" placeholder="ej: inquieta, con frío" value="{{ p.mood if p else '' }}">
+        <label for="music">escuchando</label><input id="music" type="text" name="music" maxlength="200" placeholder="ej: Mazzy Star — Fade Into You" value="{{ p.music if p else '' }}">
+        <label for="tags">etiquetas</label><input id="tags" type="text" name="tags" maxlength="300" placeholder="separadas por coma: sesión 04, bosque, rumores" value="{{ p.tags if p else '' }}">
+        <label for="created_at">fecha</label>
+        <div>
+          <input id="created_at" type="datetime-local" name="created_at" value="{{ (p.created_at|string)[:16]|replace(' ', 'T') if p else '' }}">
+          <div class="hint">vacío = ahora. podés poner fechas viejas para que parezca un archivo.</div>
+        </div>
+        <label>estado</label>
+        <label style="font-weight:400"><input type="checkbox" name="published" value="1" {% if not p or p.published %}checked{% endif %}> publicada (si no, queda como borrador)</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>texto</legend>
+      {% with target='body' %}{% include 'master/_toolbar.html' %}{% endwith %}
+      <textarea id="body" name="body" style="min-height:340px">{{ p.body if p else '' }}</textarea>
+      <p class="hint"><a href="{{ url_for('help_page') }}" target="_blank">ver todas las etiquetas</a></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>portada</legend>
+      {% if p and p.cover_id %}
+      <div class="thumbs"><div class="t"><img src="{{ image_url(p.cover_id) }}" alt=""><label><input type="checkbox" name="remove_cover" value="1"> quitar portada</label></div></div>
+      {% endif %}
+      <p><input type="file" name="cover" accept="image/*"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>fotos de la entrada</legend>
+      {% if gallery %}
+      <div class="thumbs">
+        {% for g in gallery %}
+        <div class="t">
+          <img src="{{ image_url(g.image_id) }}" alt="">
+          código: <code>[img:{{ g.image_id }}]</code>
+          <button type="button" data-insert="[img:{{ g.image_id }}]" data-target="body" style="font-size:9px;padding:0 4px">insertar</button>
+          <input type="text" name="cap_{{ g.image_id }}" value="{{ g.caption }}" placeholder="epígrafe">
+          <label><input type="checkbox" name="del_img" value="{{ g.image_id }}"> borrar</label>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="hint">las fotos que pongas en el texto con [img:N] aparecen ahí. las que no, se muestran abajo como polaroids.</p>
+      {% endif %}
+      <p><input type="file" name="gallery" accept="image/*" multiple></p>
+      <p class="hint">podés elegir varias a la vez (máx 5MB cada una). guardá y después aparecen sus códigos acá para insertarlas en el texto.</p>
+    </fieldset>
+
+    <p><button type="submit" class="primary">guardar entrada</button></p>
+  </form>
+{% endblock %}

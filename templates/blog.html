@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import entry %}
+{% block title %}lore{% endblock %}
+{% block content %}
+  <h2 class="section-title">lore & bitácora</h2>
+  <p class="section-sub">
+    {% if tag %}etiqueta: «{{ tag }}» · <a href="{{ url_for('blog') }}">ver todo</a>
+    {% elif month %}archivo: {{ month }} · <a href="{{ url_for('blog') }}">ver todo</a>
+    {% else %}todo lo que se sabe (y lo que se rumorea) del pueblo{% endif %}
+  </p>
+  {% for p in posts %}
+    {{ entry(p) }}
+  {% else %}
+    <article class="entry"><div class="body"><p>nada por acá...</p></div></article>
+  {% endfor %}
+  <div class="pager">
+    <span>{% if pg > 1 %}<a href="{{ url_for('blog', p=pg-1, tag=tag or None, mes=month or None) }}">« más nuevas</a>{% endif %}</span>
+    <span>página {{ pg }} de {{ total_pages }}</span>
+    <span>{% if pg < total_pages %}<a href="{{ url_for('blog', p=pg+1, tag=tag or None, mes=month or None) }}">más viejas »</a>{% endif %}</span>
+  </div>
+{% endblock %}

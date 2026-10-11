@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ c.name }}{% endblock %}
+{% block content %}
+<div class="wiki">
+  <h2 class="section-title wiki-title">{{ c.name }}</h2>
+  <p class="section-sub">
+    de la wiki del pueblo · última edición {{ c.updated_at|fecha }}
+    {% if is_master() %} · <a href="{{ url_for('master_character', char_id=c.id) }}">[editar]</a>{% if not c.visible %} · <b>oculto para jugadores</b>{% endif %}{% endif %}
+  </p>
+
+  <aside class="infobox">
+    <div class="ib-title">{{ c.name }}</div>
+    <div class="ib-img">
+      {% if c.image_id %}<img src="{{ image_url(c.image_id) }}" alt="{{ c.name }}">{% else %}<div class="noimg">[ sin foto ]</div>{% endif %}
+      {% if c.tagline %}<div style="margin-top:6px;font-family:'Special Elite',monospace">«{{ c.tagline }}»</div>{% endif %}
+    </div>
+    <table>
+      {% if c.skin %}<tr><th>skin</th><td>{{ c.skin }}</td></tr>{% endif %}
+      <tr><th>tipo</th><td>{{ 'npc' if c.is_npc else 'protagonista' }}</td></tr>
+      {% if c.player %}<tr><th>jugadx</th><td>{{ c.player }}</td></tr>{% endif %}
+      {% if c.look %}<tr><th>look</th><td>{{ c.look }}</td></tr>{% endif %}
+      {% if c.eyes %}<tr><th>ojos</th><td>{{ c.eyes }}</td></tr>{% endif %}
+      {% if c.origin %}<tr><th>origen</th><td>{{ c.origin }}</td></tr>{% endif %}
+      {% if c.conditions %}<tr><th>condiciones</th><td>{{ c.conditions }}</td></tr>{% endif %}
+    </table>
+  </aside>
+
+  <div class="toc">
+    <b>contenido</b>
+    <ol>
+      <li><a href="#historia">historia</a></li>
+      {% if out_strings or in_strings %}<li><a href="#strings">strings</a></li>{% endif %}
+      {% if mentions %}<li><a href="#apariciones">apariciones en la bitácora</a></li>{% endif %}
+      {% if c.secrets and is_master() %}<li><a href="#secretos">secretos del master</a></li>{% endif %}
+    </ol>
+  </div>
+
+  <h3 class="sec" id="historia">historia</h3>
+  <div class="body">{{ c.story|bb or 'esta página está vacía. ¿será que nadie sabe nada de esta persona?' }}</div>
+
+  {% if out_strings or in_strings %}
+  <h3 class="sec" id="strings">strings</h3>
+  <div class="scroll-x">
+  <table class="strings-table">
+    <tr><th>dirección</th><th>con</th><th>cantidad</th><th>nota</th></tr>
+    {% for s in out_strings %}
+    <tr><td>tiene sobre →</td><td><a href="{{ url_for('character', slug=s.slug) }}">{{ s.name }}</a></td><td class="dots">{{ '●' * s.amount }}</td><td>{{ s.note }}</td></tr>
+    {% endfor %}
+    {% for s in in_strings %}
+    <tr><td>← le tiene</td><td><a href="{{ url_for('character', slug=s.slug) }}">{{ s.name }}</a></td><td class="dots">{{ '●' * s.amount }}</td><td>{{ s.note }}</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% endif %}
+
+  {% if mentions %}
+  <h3 class="sec" id="apariciones">apariciones en la bitácora</h3>
+  <ul>
+    {% for m in mentions %}<li><a href="{{ url_for('post', post_id=m.id) }}">{{ m.title }}</a> <small>({{ m.created_at|fecha }})</small></li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if c.secrets and is_master() %}
+  <h3 class="sec" id="secretos">secretos del master</h3>
+  <div class="secret"><b>solo vos ves esto:</b><div class="body">{{ c.secrets|bb }}</div></div>
+  {% endif %}
+  <div style="clear:both"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import entry %}
+{% block title %}{{ p.title }}{% endblock %}
+{% block content %}
+  {{ entry(p, full=True) }}
+
+  {% if gallery %}
+  <h2 class="section-title" style="font-size:22px">fotos reveladas</h2>
+  <div class="gallery">
+    {% for g in gallery %}
+    <figure class="polaroid">
+      <span class="tape"></span>
+      <a href="{{ image_url(g.image_id) }}" target="_blank"><img src="{{ image_url(g.image_id) }}" alt="{{ g.caption }}" loading="lazy"></a>
+      <figcaption>{{ g.caption or '...' }}</figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="pager">
+    <span>{% if older %}<a href="{{ url_for('post', post_id=older.id) }}">« {{ older.title }}</a>{% endif %}</span>
+    <span>{% if newer %}<a href="{{ url_for('post', post_id=newer.id) }}">{{ newer.title }} »</a>{% endif %}</span>
+  </div>
+
+  <section class="comments" id="comentarios">
+    <h3>comentarios ({{ comments|length }})</h3>
+    {% for c in comments %}
+    <div class="comment{% if c.is_master %} m{% endif %}">
+      <div class="who">
+        <b>{{ c.author }}</b>{% if c.is_master %} [master]{% endif %} dijo el {{ c.created_at|fecha(True) }}
+        {% if is_master() %}
+        <form method="post" action="{{ url_for('master_comment_delete', comment_id=c.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.path }}#comentarios">
+          <button type="submit" data-confirm="¿seguro?" style="font-size:9px;padding:0 4px">borrar</button>
+        </form>
+        {% endif %}
+      </div>
+      <div style="white-space:pre-line">{{ c.body }}</div>
+    </div>
+    {% else %}
+    <p style="font-size:12px"><i>nadie comentó. el silencio es sospechoso.</i></p>
+    {% endfor %}
+
+    <div class="window" style="margin-top:16px">
+      <div class="titlebar"><span>dejar un comentario</span><span class="x">x</span></div>
+      <div class="inner">
+        <form method="post">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <p style="font-size:11px;margin:0 0 6px">firmás como <b>{{ viewer_name() }}</b></p>
+          <textarea name="body" maxlength="3000" required placeholder="escribí acá... (sin spoilers de la ficha, porfa)"></textarea>
+          <p style="margin:6px 0 0"><button type="submit" class="primary">enviar</button></p>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

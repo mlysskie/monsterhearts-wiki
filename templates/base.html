@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}{{ settings.site_title }}{% endblock %} // crónicas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Special+Elite&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <div class="topbar">
+    <span>{{ settings.town_name }} — {{ settings.season }} <span class="rec blink">●REC</span></span>
+    <span>
+      señal: <span class="signal">▂▄<b>▆█</b></span> ·
+      {% if is_master() %}<a href="{{ url_for('master_home') }}">[panel del master]</a> · {% endif %}
+      conectadx como <b>{{ viewer_name() }}</b> · <a href="{{ url_for('logout') }}">salir</a>
+    </span>
+  </div>
+
+  <header class="site">
+    <h1><a href="{{ url_for('index') }}">{{ settings.site_title }}</a></h1>
+    <p class="tagline">{{ settings.tagline }}</p>
+    <div class="counter">VISITANTES: {{ '%06d' % (settings.visits|int) }}</div>
+    {% with cls='forest', color='#23301F' %}{% include '_forest.html' %}{% endwith %}
+  </header>
+
+  {% block hero %}{% endblock %}
+
+  <div class="layout">
+    <nav class="sidebar">
+      <h3>elenco</h3>
+      <ul>
+        {% for c in side_pcs %}
+        <li>{% if c.name|lower in online|map('lower')|list %}<span class="badge-online"></span>{% endif %}<a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a>{% if c.skin %} <small>· {{ c.skin|lower }}</small>{% endif %}</li>
+        {% else %}
+        <li><i>todavía nadie llegó al pueblo...</i></li>
+        {% endfor %}
+      </ul>
+      {% if side_npcs %}
+      <h3>gente del pueblo</h3>
+      <ul>
+        {% for c in side_npcs %}
+        <li><a href="{{ url_for('character', slug=c.slug) }}">{{ c.name }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <h3>secciones</h3>
+      <ul>
+        <li><a href="{{ url_for('index') }}">» inicio</a></li>
+        <li><a href="{{ url_for('blog') }}">» lore / bitácora</a></li>
+        <li><a href="{{ url_for('characters') }}">» wiki del elenco</a></li>
+        <li><a href="{{ url_for('help_page') }}">» cómo funciona esto</a></li>
+        {% if is_master() %}<li><a href="{{ url_for('master_home') }}" style="color:var(--string)">» panel del master</a></li>{% endif %}
+      </ul>
+
+      <div class="widget">
+        <h4>en línea ahora</h4>
+        {% for n in online %}<span class="badge-online"></span>{{ n }}<br>{% else %}nadie... qué raro{% endfor %}
+      </div>
+      <div class="widget">
+        <h4>ahora sonando</h4>
+        ♪ {{ settings.now_playing }}
+      </div>
+      <div class="widget">
+        <h4>humor del pueblo</h4>
+        <div class="pre">{{ settings.town_mood }}</div>
+      </div>
+
+      <div class="widget shoutbox" id="tagboard">
+        <h4>tagboard</h4>
+        <div class="shouts">
+          {% for s in shouts %}
+          <div class="shout{% if s.is_master %} m{% endif %}">
+            <b>{{ s.author }}:</b> {{ s.body }} <time>{{ s.created_at|fecha }}</time>
+            {% if is_master() %}
+            <form class="inline" method="post" action="{{ url_for('master_shout_delete', shout_id=s.id) }}">
+              <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="{{ request.path }}#tagboard">
+              <button type="submit" title="borrar" style="font-size:9px;padding:0 3px">x</button>
+            </form>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="shout"><i>nadie dejó nada. sé lx primerx!</i></div>
+          {% endfor %}
+        </div>
+        <form method="post" action="{{ url_for('shout') }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.path }}#tagboard">
+          <input type="text" name="body" maxlength="240" placeholder="dejá un mensajito..." required>
+          <button type="submit">tag!</button>
+        </form>
+      </div>
+
+      {% if archive %}
+      <div class="widget">
+        <h4>archivo</h4>
+        {% for a in archive %}
+        <a href="{{ url_for('blog', mes='%d-%02d' % (a.year, a.month)) }}">{{ a.label }}</a> ({{ a.count }})<br>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if tag_cloud %}
+      <div class="widget tagcloud">
+        <h4>etiquetas</h4>
+        {% for t, n in tag_cloud %}
+        <a href="{{ url_for('blog', tag=t) }}" style="font-size:{{ [10 + n * 2, 18]|min }}px">{{ t }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div style="text-align:center">
+        <div class="construction"><span>EN CONSTRUCCIÓN</span></div>
+      </div>
+    </nav>
+
+    <main>
+      {% for m in get_flashed_messages() %}<div class="flash">{{ m }}</div>{% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <footer class="site">
+    hecho a mano en Notepad, {{ settings.season }} · optimizado para módem de 56k (es broma. o no.) · mejor visto en 800x600
+    <div class="webring">
+      <a href="{{ url_for('blog') }}">&lt;prev</a><a href="{{ url_for('index') }}">webring del pueblo</a><a href="{{ url_for('characters') }}">next&gt;</a>
+    </div>
+    <div class="badges">
+      <span class="badge88 b1">MONSTER<br>HEARTS 2</span>
+      <span class="badge88 b2">hecho con<br>♥ y miedo</span>
+      <span class="badge88 b3">NO HAY<br>SEÑAL</span>
+      <span class="badge88 b4">HTML 4.01</span>
+    </div>
+  </footer>
+
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+</body>
+</html>

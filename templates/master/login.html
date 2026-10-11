@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ settings.site_title }} // master</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Special+Elite&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="gate">
+  <div class="gate-box">
+    <h1>la cabaña del master</h1>
+    <p class="tagline">solo personal autorizado. en serio.</p>
+    <div class="window">
+      <div class="titlebar"><span>login_master.exe</span><span class="x">x</span></div>
+      <div class="inner">
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form method="post">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <div class="row">
+            <label for="user">usuario</label>
+            <input type="text" id="user" name="user" required autocomplete="username">
+          </div>
+          <div class="row">
+            <label for="password">contraseña</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="primary">entrar »</button>
+        </form>
+      </div>
+    </div>
+    {% with cls='gate-forest', color='#0f1a0d' %}{% include '_forest.html' %}{% endwith %}
+    <p class="small"><a href="{{ url_for('gate') }}">« volver a la entrada de jugadores</a></p>
+  </div>
+</body>
+</html>

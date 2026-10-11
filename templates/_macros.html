@@ -1,0 +1,35 @@
+{% macro polaroid(c, pin=True) -%}
+<a class="polaroid" href="{{ url_for('character', slug=c.slug) }}" data-id="{{ c.id }}">
+  {% if pin %}<span class="pin"></span>{% else %}<span class="tape"></span>{% endif %}
+  <div class="img"{% if c.image_id %} style="background-image:url('{{ image_url(c.image_id) }}')"{% endif %}></div>
+  <div class="cap">{{ c.name|lower }}{% if c.skin %}<br>&mdash; {{ c.skin|lower }} &mdash;{% endif %}</div>
+</a>
+{%- endmacro %}
+
+{% macro entry(p, full=False) -%}
+<article class="entry{% if not p.published %} draft{% endif %}">
+  <div class="meta">
+    {{ p.created_at|fecha(True) }}{% if not p.published %} · <b>borrador (solo lo ves vos)</b>{% endif %}
+  </div>
+  <h3>{% if full %}{{ p.title }}{% else %}<a href="{{ url_for('post', post_id=p.id) }}">{{ p.title }}</a>{% endif %}</h3>
+  {% if full %}
+    {% if p.cover_id %}<img class="cover" src="{{ image_url(p.cover_id) }}" alt="">{% endif %}
+    <div class="body">{{ p.body|bb }}</div>
+  {% else %}
+    {% if p.cover_id %}<a href="{{ url_for('post', post_id=p.id) }}"><img class="cover thumb" src="{{ image_url(p.cover_id) }}" alt=""></a>{% endif %}
+    <div class="body"><p>{{ p.body|excerpt }}</p></div>
+  {% endif %}
+  {% if p.mood or p.music %}
+  <div class="moodbox">
+    {% if p.mood %}<b>humor actual:</b> {{ p.mood }}<br>{% endif %}
+    {% if p.music %}<b>escuchando:</b> ♪ {{ p.music }}{% endif %}
+  </div>
+  {% endif %}
+  <div class="foot">
+    {% if not full %}<a href="{{ url_for('post', post_id=p.id) }}">» leer todo</a>
+    <a href="{{ url_for('post', post_id=p.id) }}#comentarios">{{ p.n_comments }} comentario{{ '' if p.n_comments == 1 else 's' }}</a>{% endif %}
+    {% if is_master() %}<a href="{{ url_for('master_post', post_id=p.id) }}">[editar]</a>{% endif %}
+  </div>
+  {% for t in p.tags|tags %}<a class="strings-tag" href="{{ url_for('blog', tag=t) }}">{{ t }}</a>{% endfor %}
+</article>
+{%- endmacro %}

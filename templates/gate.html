@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ settings.site_title }} // entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Special+Elite&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="gate">
+  <div class="gate-box">
+    <h1>{{ settings.site_title }}</h1>
+    <p class="tagline">{{ settings.tagline }}</p>
+
+    <div class="window">
+      <div class="titlebar"><span>acceso_restringido.exe</span><span class="x">x</span></div>
+      <div class="inner">
+        <p>este sitio es solo para la gente del pueblo. ingresá el código que te dio el master.</p>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form method="post">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ next }}">
+          <div class="row">
+            <label for="name">tu apodo</label>
+            <input type="text" id="name" name="name" maxlength="30" required autocomplete="nickname" value="{{ request.form.name or '' }}">
+          </div>
+          <div class="row">
+            <label for="code">código de acceso</label>
+            <input type="password" id="code" name="code" required autocomplete="off">
+          </div>
+          <button type="submit" class="primary">entrar »</button>
+        </form>
+      </div>
+    </div>
+    <div class="dialup"></div>
+
+    {% with cls='gate-forest', color='#0f1a0d' %}{% include '_forest.html' %}{% endwith %}
+    <p class="small">
+      {{ settings.town_name }} · {{ settings.season }}<br>
+      ¿sos el master? <a href="{{ url_for('master_login') }}">entrá por acá</a>
+    </p>
+  </div>
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}{{ c.name if c else 'nuevo personaje' }}{% endblock %}
+{% block content %}
+  <h2 class="section-title">{{ 'editar: ' ~ c.name if c else 'nuevo personaje' }}</h2>
+  <p class="section-sub"><a href="{{ url_for('master_home') }}">« volver al panel</a>{% if c %} · <a href="{{ url_for('character', slug=c.slug) }}">ver página</a>{% endif %}</p>
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+    <fieldset>
+      <legend>datos básicos</legend>
+      <div class="form-grid">
+        <label for="name">nombre *</label><input id="name" type="text" name="name" required maxlength="80" value="{{ c.name if c else '' }}">
+        <label for="skin">skin</label><input id="skin" type="text" name="skin" maxlength="80" placeholder="ej: el lobo, la hada, el infernal..." value="{{ c.skin if c else '' }}">
+        <label for="player">jugadx</label><input id="player" type="text" name="player" maxlength="80" value="{{ c.player if c else '' }}">
+        <label for="tagline">frase</label><input id="tagline" type="text" name="tagline" maxlength="160" value="{{ c.tagline if c else '' }}">
+        <label for="look">look</label><input id="look" type="text" name="look" maxlength="200" value="{{ c.look if c else '' }}">
+        <label for="eyes">ojos</label><input id="eyes" type="text" name="eyes" maxlength="200" value="{{ c.eyes if c else '' }}">
+        <label for="origin">origen</label><input id="origin" type="text" name="origin" maxlength="200" value="{{ c.origin if c else '' }}">
+        <label for="conditions">condiciones</label><input id="conditions" type="text" name="conditions" maxlength="200" placeholder="ej: expuesta, rara" value="{{ c.conditions if c else '' }}">
+        <label for="sort_order">orden</label><input id="sort_order" type="number" name="sort_order" value="{{ c.sort_order if c else 0 }}" style="width:80px">
+        <label>opciones</label>
+        <div>
+          <label style="font-weight:400"><input type="checkbox" name="is_npc" value="1" {% if c and c.is_npc %}checked{% endif %}> es npc (gente del pueblo)</label><br>
+          <label style="font-weight:400"><input type="checkbox" name="visible" value="1" {% if not c or c.visible %}checked{% endif %}> visible para jugadores</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>foto</legend>
+      {% if c and c.image_id %}
+      <div class="thumbs"><div class="t"><img src="{{ image_url(c.image_id) }}" alt=""><label><input type="checkbox" name="remove_image" value="1"> quitar foto</label></div></div>
+      {% endif %}
+      <p><input type="file" name="image" accept="image/*"></p>
+      <p class="hint">jpg, png, gif o webp · máx 5MB. se ve en la polaroid y en la ficha.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>historia</legend>
+      {% with target='story' %}{% include 'master/_toolbar.html' %}{% endwith %}
+      <textarea id="story" name="story" style="min-height:280px">{{ c.story if c else '' }}</textarea>
+      <p class="hint">usá [[Nombre]] para linkear a otro personaje. <a href="{{ url_for('help_page') }}" target="_blank">ver todas las etiquetas</a>. para meter imágenes en el texto, subilas en una entrada del blog y copiá su código [img:N].</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>strings que tiene sobre otros</legend>
+      {% if others %}
+      <div class="scroll-x">
+      <table class="list-table">
+        <tr><th>sobre</th><th>cantidad</th><th>nota (opcional)</th></tr>
+        {% for o in others %}
+        {% set s = strings.get(o.id) %}
+        <tr>
+          <td>{{ o.name }}</td>
+          <td><input type="number" name="str_{{ o.id }}" min="0" max="9" value="{{ s.amount if s else 0 }}" style="width:60px"></td>
+          <td><input type="text" name="note_{{ o.id }}" maxlength="200" value="{{ s.note if s else '' }}" style="width:100%"></td>
+        </tr>
+        {% endfor %}
+      </table>
+      </div>
+      <p class="hint">los strings &gt; 0 entre protagonistas se dibujan como hilos rojos en la pizarra del inicio.</p>
+      {% else %}
+      <p class="hint">cuando haya más personajes vas a poder marcar strings acá.</p>
+      {% endif %}
+    </fieldset>
+
+    <fieldset>
+      <legend>secretos (solo los ve el master)</legend>
+      {% with target='secrets' %}{% include 'master/_toolbar.html' %}{% endwith %}
+      <textarea id="secrets" name="secrets" style="min-height:120px">{{ c.secrets if c else '' }}</textarea>
+    </fieldset>
+
+    <p><button type="submit" class="primary">guardar personaje</button></p>
+  </form>
+{% endblock %}

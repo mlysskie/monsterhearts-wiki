@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import polaroid, entry %}
+{% block title %}inicio{% endblock %}
+{% block hero %}
+<div class="marquee"><span>★ {{ settings.welcome }} ★ última actualización: {{ (posts[0].created_at if posts else none)|fecha }} ★ firmá el tagboard ★</span></div>
+<section class="corkboard">
+  <h2>strings del elenco</h2>
+  {% if board %}
+  <div class="board-wrap" data-links='{{ links|tojson }}'>
+    <svg class="strings" aria-hidden="true"></svg>
+    {% for c in board %}{{ polaroid(c) }}{% endfor %}
+  </div>
+  {% else %}
+  <p class="board-empty">la pizarra está vacía. el master todavía no clavó ninguna foto.</p>
+  {% endif %}
+</section>
+{% endblock %}
+{% block content %}
+  <h2 class="section-title">últimas entradas</h2>
+  <p class="section-sub">registrado tras la sesión, sin editar</p>
+  {% for p in posts %}
+    {{ entry(p) }}
+  {% else %}
+    <article class="entry"><div class="body"><p>no hay entradas todavía. volvé cuando haya señal.</p></div></article>
+  {% endfor %}
+  {% if posts %}<p style="text-align:right"><a href="{{ url_for('blog') }}">» ver toda la bitácora</a></p>{% endif %}
+{% endblock %}

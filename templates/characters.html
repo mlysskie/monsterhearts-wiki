@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import polaroid %}
+{% block title %}wiki del elenco{% endblock %}
+{% block content %}
+  <h2 class="section-title">wiki del elenco</h2>
+  <p class="section-sub">fichas, historias y lo que dicen en los pasillos</p>
+
+  <h3 class="wiki-title" style="font-family:'Kalam',cursive">protagonistas</h3>
+  <div class="char-grid">
+    {% for c in pcs %}{{ polaroid(c, pin=False) }}{% else %}<p>todavía nadie.</p>{% endfor %}
+  </div>
+
+  {% if npcs %}
+  <h3 class="wiki-title" style="font-family:'Kalam',cursive">gente del pueblo (npcs)</h3>
+  <div class="char-grid">
+    {% for c in npcs %}{{ polaroid(c, pin=False) }}{% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}
