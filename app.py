@@ -8,6 +8,7 @@ from functools import wraps
 
 from flask import (Flask, Response, abort, flash, redirect, render_template,
                    request, session, url_for)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import db
 import markup
@@ -476,22 +477,88 @@ def help_page():
 # ---------------------------------------------------------------- master
 
 
+def master_password_state():
+    """Qué contraseña vale para el master.
+
+    Si el master la cambió desde el panel, vale esa (guardada con hash en settings).
+    Para recuperarla alcanza con poner un MASTER_PASSWORD distinto en Railway: como
+    guardamos con qué MASTER_PASSWORD se hizo el cambio, al detectar uno nuevo vuelve
+    a valer la variable de entorno.
+    """
+    settings = get_settings()
+    db_hash = settings.get("master_pw_hash", "")
+    env_fp = settings.get("master_env_fp", "")
+    env_changed = bool(MASTER_PASSWORD) and not (env_fp and check_password_hash(env_fp, MASTER_PASSWORD))
+    if db_hash and not env_changed:
+        return "db", db_hash
+    return "env", None
+
+
+def check_master_password(pw):
+    mode, db_hash = master_password_state()
+    if mode == "db":
+        return check_password_hash(db_hash, pw)
+    return bool(MASTER_PASSWORD) and hmac.compare_digest(pw, MASTER_PASSWORD)
+
+
 @app.route("/master/login", methods=["GET", "POST"])
 def master_login():
     error = None
-    if not MASTER_PASSWORD:
+    mode, _ = master_password_state()
+    if mode == "env" and not MASTER_PASSWORD:
         error = "falta configurar MASTER_PASSWORD en las variables de entorno."
     elif request.method == "POST":
         user = request.form.get("user", "")
         pw = request.form.get("password", "")
-        if hmac.compare_digest(user, MASTER_USER) and hmac.compare_digest(pw, MASTER_PASSWORD):
+        if hmac.compare_digest(user, MASTER_USER) and check_master_password(pw):
             session.clear()
             session.permanent = True
             session["master"] = True
+            if mode == "env" and get_settings().get("master_pw_hash"):
+                # entró con un MASTER_PASSWORD nuevo de Railway: recuperación
+                set_setting("master_pw_hash", "")
+                set_setting("master_env_fp", "")
+                flash("recuperaste el acceso con la contraseña de Railway. podés elegir una nueva en el panel.")
             return redirect(url_for("master_home"))
         time.sleep(1.5)
         error = "usuario o contraseña incorrectos."
     return render_template("master/login.html", settings=get_settings(), error=error)
+
+
+@app.route("/master/contrasena", methods=["POST"])
+@require_master
+def master_change_password():
+    current = request.form.get("current", "")
+    new = request.form.get("new", "")
+    repeat = request.form.get("repeat", "")
+    if not check_master_password(current):
+        time.sleep(1)
+        flash("la contraseña actual no es correcta.")
+    elif len(new) < 6:
+        flash("la contraseña nueva tiene que tener al menos 6 caracteres.")
+    elif new != repeat:
+        flash("las dos contraseñas nuevas no coinciden.")
+    else:
+        set_setting("master_pw_hash", generate_password_hash(new))
+        set_setting("master_env_fp", generate_password_hash(MASTER_PASSWORD) if MASTER_PASSWORD else "")
+        flash("contraseña del master cambiada. desde ahora entrás con la nueva.")
+    return redirect(url_for("master_home") + "#contrasenas")
+
+
+@app.route("/master/pueblonet-contrasena", methods=["POST"])
+@require_master
+def master_reset_net_password():
+    pid = request.form.get("profile_id", type=int)
+    new = request.form.get("new", "")
+    p = db.query("SELECT handle FROM net_profiles WHERE id=%s", (pid,), one=True)
+    if not p:
+        flash("elegí un perfil.")
+    elif len(new) < 4:
+        flash("la contraseña nueva tiene que tener al menos 4 caracteres.")
+    else:
+        db.execute("UPDATE net_profiles SET password_hash=%s WHERE id=%s", (generate_password_hash(new), pid))
+        flash(f"listo: @{p['handle']} ya puede entrar con la contraseña nueva. pasásela en privado.")
+    return redirect(url_for("master_home") + "#contrasenas")
 
 
 @app.route("/master")
@@ -508,7 +575,9 @@ def master_home():
     posts = db.query("SELECT id, title, published, created_at FROM posts ORDER BY created_at DESC, id DESC")
     comments = db.query("SELECT c.*, p.title FROM comments c JOIN posts p ON p.id = c.post_id "
                         "ORDER BY c.id DESC LIMIT 15")
-    return page("master/home.html", stats=stats, chars=chars, all_posts=posts, comments=comments)
+    net_profiles = db.query("SELECT id, handle, display_name FROM net_profiles ORDER BY display_name")
+    return page("master/home.html", stats=stats, chars=chars, all_posts=posts, comments=comments,
+                net_profiles=net_profiles, master_pw_mode=master_password_state()[0])
 
 
 @app.route("/master/ajustes", methods=["POST"])

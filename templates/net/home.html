@@ -20,6 +20,7 @@
         <p>
           <a class="nbtn" href="{{ url_for('net.profile', handle=me.handle) }}">ver mi perfil</a>
           <a class="nbtn" href="{{ url_for('net.edit', handle=me.handle) }}">editar / decorar</a>
+          <a class="nbtn" href="{{ url_for('net.account') }}">contraseña</a>
         </p>
       </div>
     </div>
@@ -53,7 +54,8 @@
           <div class="frow"><label for="pw">contraseña</label><input id="pw" type="password" name="password" required autocomplete="current-password"></div>
           <button type="submit" class="go">entrar</button>
         </form>
-        <p class="muted" style="margin-top:8px">¿no tenés perfil? <a href="{{ url_for('net.signup') }}">creá uno gratis!</a> (de verdad es gratis, es 2003)</p>
+        <p class="muted" style="margin-top:8px"><a href="{{ url_for('net.recover') }}">¿olvidaste tu contraseña?</a></p>
+        <p class="muted">¿no tenés perfil? <a href="{{ url_for('net.signup') }}">creá uno gratis!</a> (de verdad es gratis, es 2003)</p>
       </div>
     </div>
     {% endif %}

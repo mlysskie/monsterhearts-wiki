@@ -38,6 +38,33 @@ En `/red` hay una red social estilo SpaceHey/MySpace de 2003, dentro del mismo s
 
 Las tablas nuevas (`net_*`) se crean solas al arrancar, también en una base que ya existía.
 
+## Contraseñas y recuperación
+
+**Master**
+- Cambia su contraseña desde el panel (ventana "contraseñas"). Desde ese momento vale la nueva.
+- ¿Se la olvidó? En Railway, cambiar la variable `MASTER_PASSWORD` por un valor nuevo y entrar con ese:
+  el sitio detecta que la variable cambió y vuelve a aceptarla.
+
+**Jugadores** (entran al sitio con el código de acceso compartido; eso se cambia desde el panel)
+
+**pueblonet**
+- Al crear el perfil se muestra **una sola vez** un código de recuperación (`ABCD-EFGH-JKLM`).
+- "¿olvidaste tu contraseña?" (`/red/recuperar`): usuario + código + contraseña nueva. El código se usa
+  una vez y se genera otro.
+- "cuenta" (`/red/cuenta`): cambiar la contraseña y generar un código nuevo.
+- Si alguien perdió contraseña y código, el master le pone una nueva desde su panel.
+- Los perfiles creados antes de esto no tienen código: lo generan desde "cuenta".
+
+## Pruebas
+
+```bash
+pip install -r requirements.txt
+python tests/run_all.py
+```
+
+Corre la wiki, pueblonet y contraseñas sobre una base SQLite temporal. Con `DATABASE_URL` apuntando a un
+Postgres **vacío de prueba** (nunca al de Railway) corren contra Postgres.
+
 ## Deploy en Railway
 
 1. En Railway: **New Project → Deploy from GitHub repo** y elegí este repo.

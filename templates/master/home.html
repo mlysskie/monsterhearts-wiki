@@ -24,6 +24,39 @@
     </div>
   </div>
 
+  <div class="window" id="contrasenas">
+    <div class="titlebar"><span>contraseñas</span><span class="x">x</span></div>
+    <div class="inner">
+      <p style="margin-top:0"><b>tu contraseña de master</b>
+        <span style="font-size:11px">— ahora entrás con {{ 'la que elegiste acá' if master_pw_mode == 'db' else 'la de Railway (MASTER_PASSWORD)' }}.</span></p>
+      <form method="post" action="{{ url_for('master_change_password') }}" class="form-grid">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label for="mp0">actual</label><input id="mp0" type="password" name="current" required autocomplete="current-password">
+        <label for="mp1">nueva</label><input id="mp1" type="password" name="new" required minlength="6" autocomplete="new-password">
+        <label for="mp2">repetir nueva</label><input id="mp2" type="password" name="repeat" required minlength="6" autocomplete="new-password">
+        <span></span><div><button type="submit">cambiar mi contraseña</button></div>
+      </form>
+      <p class="hint">¿te la olvidaste? en Railway cambiá la variable <code>MASTER_PASSWORD</code> por una nueva y entrá con esa: el sitio detecta el cambio y te deja pasar.</p>
+
+      <p style="margin-bottom:6px"><b>contraseñas de pueblonet</b>
+        <span style="font-size:11px">— si alguien perdió la suya y su código de recuperación, ponele una nueva y pasásela en privado.</span></p>
+      {% if net_profiles %}
+      <form method="post" action="{{ url_for('master_reset_net_password') }}" class="form-grid">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label for="np0">perfil</label>
+        <select id="np0" name="profile_id" required>
+          <option value="">— elegí —</option>
+          {% for n in net_profiles %}<option value="{{ n.id }}">{{ n.display_name }} (@{{ n.handle }})</option>{% endfor %}
+        </select>
+        <label for="np1">contraseña nueva</label><input id="np1" type="text" name="new" required minlength="4" autocomplete="off">
+        <span></span><div><button type="submit">poner contraseña nueva</button></div>
+      </form>
+      {% else %}
+      <p class="hint">todavía nadie creó un perfil en pueblonet.</p>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="window">
     <div class="titlebar"><span>wiki: personajes</span><span class="x">x</span></div>
     <div class="inner">
