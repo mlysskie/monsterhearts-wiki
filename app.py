@@ -36,6 +36,14 @@ _similar = [k for k in os.environ if "MASTER" in k.upper() and k not in ("MASTER
 if _similar:
     print("[config] ojo, variables con nombre parecido (¿typo o espacios?):", [repr(k) for k in _similar], flush=True)
 
+# En Railway el disco del contenedor se borra en cada deploy: sin Postgres se perdería todo.
+# Mejor no arrancar que guardar datos en un lugar que desaparece.
+if os.environ.get("RAILWAY_ENVIRONMENT") and not db.IS_PG and not os.environ.get("ALLOW_SQLITE"):
+    raise RuntimeError(
+        "DATABASE_URL no está configurada en el servicio web de Railway. Sin ella los datos se "
+        "guardarían en un archivo temporal que se borra en cada deploy. Agregá la variable "
+        "DATABASE_URL = ${{Postgres.DATABASE_URL}} en el servicio web y volvé a desplegar.")
+
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 POSTS_PER_PAGE = 6
