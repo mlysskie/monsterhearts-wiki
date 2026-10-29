@@ -9,27 +9,11 @@ import sqlite3
 
 from flask import g
 
-_RAW_URL = os.environ.get("DATABASE_URL")
-# tolera errores comunes al pegar: espacios o comillas alrededor
-DATABASE_URL = (_RAW_URL or "").strip().strip("'\"").strip()
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
 IS_PG = DATABASE_URL.startswith("postgresql://")
-
-
-def describe_url():
-    """Explica qué tiene DATABASE_URL, sin mostrar la contraseña."""
-    if IS_PG:
-        return "ok (postgres)"
-    if _RAW_URL is None:
-        return "NO EXISTE en este servicio"
-    if not DATABASE_URL:
-        return "existe pero está VACÍA (¿la referencia ${{...}} apunta a un servicio que no se llama así?)"
-    if "${{" in DATABASE_URL:
-        return "tiene el texto ${{...}} sin resolver: el nombre del servicio entre llaves no coincide"
-    scheme = DATABASE_URL.split("://", 1)[0][:20] if "://" in DATABASE_URL else DATABASE_URL[:6] + "..."
-    return f"tiene un valor que no es de postgres (empieza con «{scheme}»)"
 
 if IS_PG:
     import psycopg2
@@ -120,7 +104,6 @@ CREATE TABLE IF NOT EXISTS net_profiles (
     handle TEXT UNIQUE NOT NULL,
     display_name TEXT NOT NULL,
     password_hash TEXT,
-    recovery_hash TEXT,
     character_id INTEGER REFERENCES characters(id) ON DELETE SET NULL,
     is_npc BOOLEAN NOT NULL DEFAULT FALSE,
     avatar_id INTEGER REFERENCES images(id) ON DELETE SET NULL,
@@ -237,25 +220,13 @@ def blob(data):
     return psycopg2.Binary(data) if IS_PG else sqlite3.Binary(data)
 
 
-# columnas agregadas después de la primera versión: (tabla, columna, tipo)
-MIGRATIONS = [
-    ("net_profiles", "recovery_hash", "TEXT"),
-]
-
-
 def init_db():
     conn = _connect()
     cur = conn.cursor()
     if IS_PG:
         cur.execute(SCHEMA_PG)
-        for table, column, kind in MIGRATIONS:
-            cur.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {kind}")
     else:
         cur.executescript(SCHEMA_SQLITE)
-        for table, column, kind in MIGRATIONS:
-            cur.execute(f"PRAGMA table_info({table})")
-            if column not in [row["name"] for row in cur.fetchall()]:
-                cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
     conn.commit()
     cur.close()
     conn.close()

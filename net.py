@@ -6,8 +6,6 @@ a los NPCs) sin contraseña.
 """
 import json
 import re
-import secrets
-import time
 from datetime import datetime, timedelta
 from functools import wraps
 from types import SimpleNamespace
@@ -356,16 +354,15 @@ def signup():
             flash(error)
             return render("net/signup.html", chars=chars, form=request.form)
         is_npc = H.is_master() and bool(request.form.get("is_npc"))
-        code = new_recovery_code()
         row = db.execute(
-            "INSERT INTO net_profiles (handle, display_name, password_hash, recovery_hash, character_id, "
-            "is_npc, theme) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-            (handle, name, generate_password_hash(pw) if pw else None, generate_password_hash(code),
-             char_id or None, is_npc, "niebla" if is_npc else "clasico"),
+            "INSERT INTO net_profiles (handle, display_name, password_hash, character_id, is_npc, theme) "
+            "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+            (handle, name, generate_password_hash(pw) if pw else None, char_id or None, is_npc,
+             "niebla" if is_npc else "clasico"),
             returning=True)
         session["net_pid"] = row["id"]
-        session["net_new_code"] = code
-        return redirect(url_for("net.show_code", siguiente="editar"))
+        flash("¡perfil creado! ahora decoralo como quieras.")
+        return redirect(url_for("net.edit", handle=handle))
     return render("net/signup.html", chars=chars, form={})
 
 
@@ -616,6 +613,13 @@ def edit(handle):
             tuple(data[f] for f in PROFILE_FIELDS) + (
                 theme, json.dumps(style), request.form.get("custom_css", "")[:8000], ",".join(top),
                 images["avatar_id"], images["cover_id"], images["bg_id"], p["id"]))
+        new_pw = request.form.get("new_password", "")
+        if new_pw:
+            if len(new_pw) < 4:
+                flash("la contraseña nueva es muy corta, no se cambió.")
+            else:
+                db.execute("UPDATE net_profiles SET password_hash=%s WHERE id=%s",
+                           (generate_password_hash(new_pw), p["id"]))
         if H.is_master():
             char_id = request.form.get("character_id", type=int)
             db.execute("UPDATE net_profiles SET is_npc=%s, character_id=%s WHERE id=%s",
@@ -646,96 +650,3 @@ def delete_profile(handle):
         session.pop("net_pid", None)
     flash(f"el perfil @{p['handle']} fue borrado.")
     return redirect(url_for("net.home"))
-
-
-# ---------------------------------------------------------------- contraseñas y recuperación
-
-CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # sin 0/O ni 1/I para que no se confundan
-
-
-def new_recovery_code():
-    return "-".join("".join(secrets.choice(CODE_ALPHABET) for _ in range(4)) for _ in range(3))
-
-
-def normalize_code(code):
-    raw = re.sub(r"[^A-Za-z0-9]", "", code or "").upper()
-    return "-".join(raw[i:i + 4] for i in range(0, len(raw), 4))
-
-
-def check_new_password(new, repeat):
-    if len(new) < 4:
-        return "la contraseña nueva tiene que tener al menos 4 caracteres."
-    if new != repeat:
-        return "las dos contraseñas nuevas no coinciden."
-    return None
-
-
-@bp.route("/codigo")
-@need_access
-@need_profile
-def show_code():
-    """Muestra una sola vez el código de recuperación recién generado."""
-    code = session.pop("net_new_code", None)
-    if not code:
-        return redirect(url_for("net.account"))
-    nxt = url_for("net.edit", handle=current_profile()["handle"]) if request.args.get("siguiente") == "editar" \
-        else url_for("net.account")
-    return render("net/code.html", code=code, nxt=nxt)
-
-
-@bp.route("/cuenta", methods=["GET", "POST"])
-@need_access
-@need_profile
-def account():
-    me = current_profile()
-    master = H.is_master()
-    if request.method == "POST":
-        action = request.form.get("action")
-        current = request.form.get("current", "")
-        # el master (manejando npcs) no necesita la contraseña actual; un perfil sin contraseña tampoco
-        if not master and me["password_hash"] and not check_password_hash(me["password_hash"], current):
-            time.sleep(1)
-            flash("la contraseña actual no es correcta.")
-            return redirect(url_for("net.account"))
-        if action == "password":
-            error = check_new_password(request.form.get("new", ""), request.form.get("repeat", ""))
-            if error:
-                flash(error)
-            else:
-                db.execute("UPDATE net_profiles SET password_hash=%s WHERE id=%s",
-                           (generate_password_hash(request.form["new"]), me["id"]))
-                flash("contraseña cambiada ♥")
-        elif action == "code":
-            code = new_recovery_code()
-            db.execute("UPDATE net_profiles SET recovery_hash=%s WHERE id=%s",
-                       (generate_password_hash(code), me["id"]))
-            session["net_new_code"] = code
-            return redirect(url_for("net.show_code"))
-        return redirect(url_for("net.account"))
-    return render("net/account.html", me=me, needs_current=not master and bool(me["password_hash"]))
-
-
-@bp.route("/recuperar", methods=["GET", "POST"])
-@need_access
-def recover():
-    if request.method == "POST":
-        handle = request.form.get("handle", "").strip().lower().lstrip("@")
-        code = normalize_code(request.form.get("code", ""))
-        p = db.query("SELECT * FROM net_profiles WHERE handle=%s", (handle,), one=True)
-        if not p or not p["recovery_hash"] or not check_password_hash(p["recovery_hash"], code):
-            time.sleep(1)
-            flash("ese usuario y código no coinciden. si perdiste el código, pedile al master una contraseña nueva.")
-            return render("net/recover.html", form=request.form)
-        error = check_new_password(request.form.get("new", ""), request.form.get("repeat", ""))
-        if error:
-            flash(error)
-            return render("net/recover.html", form=request.form)
-        # el código se usa una sola vez: se reemplaza por uno nuevo
-        fresh = new_recovery_code()
-        db.execute("UPDATE net_profiles SET password_hash=%s, recovery_hash=%s WHERE id=%s",
-                   (generate_password_hash(request.form["new"]), generate_password_hash(fresh), p["id"]))
-        session["net_pid"] = p["id"]
-        session["net_new_code"] = fresh
-        flash("¡listo! contraseña nueva guardada. tu código viejo ya no sirve: guardá este nuevo.")
-        return redirect(url_for("net.show_code"))
-    return render("net/recover.html", form={})

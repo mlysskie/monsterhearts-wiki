@@ -24,7 +24,7 @@
     </form>
     <div class="net-who">
       {% if me %}
-        conectadx: <a href="{{ url_for('net.profile', handle=me.handle) }}">@{{ me.handle }}</a> · <a href="{{ url_for('net.account') }}">cuenta</a> · <a href="{{ url_for('net.logout') }}">salir</a>
+        conectadx: <a href="{{ url_for('net.profile', handle=me.handle) }}">@{{ me.handle }}</a> · <a href="{{ url_for('net.logout') }}">salir</a>
       {% else %}
         <a href="{{ url_for('net.home') }}">entrar</a> · <a href="{{ url_for('net.signup') }}">registrarse</a>
       {% endif %}

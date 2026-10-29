@@ -43,7 +43,7 @@
     <div class="nbox">
       <h3>cuenta</h3>
       <div class="nbox-body">
-        <p style="margin:0 0 6px"><a class="nbtn" href="{{ url_for('net.account') }}">cambiar contraseña / código de recuperación</a></p>
+        <div class="frow"><label>contraseña nueva</label><input type="password" name="new_password" autocomplete="new-password" placeholder="dejala vacía para no cambiarla"></div>
         {% if is_master() %}
         <div class="frow"><label>personaje de la wiki</label>
           <select name="character_id">
