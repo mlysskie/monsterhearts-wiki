@@ -9,11 +9,27 @@ import sqlite3
 
 from flask import g
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+_RAW_URL = os.environ.get("DATABASE_URL")
+# tolera errores comunes al pegar: espacios o comillas alrededor
+DATABASE_URL = (_RAW_URL or "").strip().strip("'\"").strip()
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
 IS_PG = DATABASE_URL.startswith("postgresql://")
+
+
+def describe_url():
+    """Explica qué tiene DATABASE_URL, sin mostrar la contraseña."""
+    if IS_PG:
+        return "ok (postgres)"
+    if _RAW_URL is None:
+        return "NO EXISTE en este servicio"
+    if not DATABASE_URL:
+        return "existe pero está VACÍA (¿la referencia ${{...}} apunta a un servicio que no se llama así?)"
+    if "${{" in DATABASE_URL:
+        return "tiene el texto ${{...}} sin resolver: el nombre del servicio entre llaves no coincide"
+    scheme = DATABASE_URL.split("://", 1)[0][:20] if "://" in DATABASE_URL else DATABASE_URL[:6] + "..."
+    return f"tiene un valor que no es de postgres (empieza con «{scheme}»)"
 
 if IS_PG:
     import psycopg2
